@@ -65,6 +65,6 @@ mod cli {
 
         fs::create_dir(&path).ok();
 
-        Cli::clap().gen_completions("robonomics", *shell, &path);
+        Cli::clap().gen_completions("ipci", *shell, &path);
     }
 }

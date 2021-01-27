@@ -19,9 +19,8 @@
 use crate::chain_spec::ChainSpec;
 use crate::service;
 use log::info;
-use std::str::FromStr;
 use substrate_browser_utils::{
-    browser_configuration, init_console_log, set_console_error_panic_hook, Client,
+    browser_configuration, init_logging_and_telemetry, set_console_error_panic_hook, Client,
 };
 use wasm_bindgen::prelude::*;
 
@@ -41,16 +40,19 @@ async fn start_inner(
     log_level: String,
 ) -> Result<Client, Box<dyn std::error::Error>> {
     set_console_error_panic_hook();
-    init_console_log(log::Level::from_str(&log_level)?)?;
+    let telemetry = init_logging_and_telemetry(&log_level)?;
+
     let chain_spec = match chain_spec {
         Some(chain_spec) => ChainSpec::from_json_bytes(chain_spec.as_bytes().to_vec())
             .map_err(|e| format!("{:?}", e))?,
         None => crate::chain_spec::development_config(),
     };
 
-    let config = browser_configuration(chain_spec).await?;
+    let config = browser_configuration(
+        chain_spec,Some(telemetry.handle())
+    ).await?;
 
-    info!("Robonomics browser node");
+    info!("IPCI browser node");
     info!("  version {}", config.impl_version);
     info!("  by Airalab, 2018-2020");
     info!("Chain specification: {}", config.chain_spec.name());

@@ -28,6 +28,10 @@ impl SubstrateCli for Cli {
         env!("SUBSTRATE_CLI_IMPL_VERSION").into()
     }
 
+    fn executable_name() -> String {
+        "ipci".into()
+    }
+
     fn description() -> String {
         env!("CARGO_PKG_DESCRIPTION").into()
     }
@@ -42,10 +46,6 @@ impl SubstrateCli for Cli {
 
     fn copyright_start_year() -> i32 {
         2018
-    }
-
-    fn executable_name() -> String {
-        "ipci".into()
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {

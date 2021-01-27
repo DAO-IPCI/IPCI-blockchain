@@ -7,10 +7,6 @@ members = [
     "bin/node/primitives",
 ]
 
-exclude = [
-    "vendor",
-]
-
 [profile.release]
 # Substrate runtime requires unwinding.
 panic = "unwind"

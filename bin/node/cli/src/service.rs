@@ -540,34 +540,3 @@ pub mod ipci {
     }
 }
 
-// ///  Robonomics chain services.
-// pub mod robonomics {
-//     use robonomics_runtime::RuntimeApi;
-//     use sc_service::{config::Configuration, error::Result, RpcHandlers, TaskManager};
-//
-//     #[cfg(feature = "frame-benchmarking")]
-//     sc_executor::native_executor_instance!(
-//         pub Executor,
-//         robonomics_runtime::api::dispatch,
-//         robonomics_runtime::native_version,
-//         frame_benchmarking::benchmarking::HostFunctions,
-//     );
-//
-//     #[cfg(not(feature = "frame-benchmarking"))]
-//     sc_executor::native_executor_instance!(
-//         pub Executor,
-//         robonomics_runtime::api::dispatch,
-//         robonomics_runtime::native_version,
-//     );
-//
-//     /// Create a new Robonomics service for a full node.
-//     pub fn new_full(config: Configuration) -> Result<TaskManager> {
-//         super::new_full_base::<RuntimeApi, Executor>(config)
-//             .map(|(task_manager, _, _, _, _)| task_manager)
-//     }
-//
-//     pub fn new_light(config: Configuration) -> Result<(TaskManager, RpcHandlers)> {
-//         super::new_light_base::<RuntimeApi, Executor>(config)
-//             .map(|(task_manager, rpc_handlers, _, _, _)| (task_manager, rpc_handlers))
-//     }
-// }
