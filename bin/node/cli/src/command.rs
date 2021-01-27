@@ -17,16 +17,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use crate::{chain_spec, service::ipci, Cli, Subcommand};
-use codec::Encode;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
-use sp_api::BlockT;
-use sp_core::hexdisplay::HexDisplay;
-use std::io::Write;
-
-#[cfg(feature = "parachain")]
-use crate::parachain;
-#[cfg(feature = "parachain")]
-use cumulus_primitives::genesis::generate_genesis_block;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
@@ -54,32 +45,21 @@ impl SubstrateCli for Cli {
     }
 
     fn executable_name() -> String {
-        "robonomics".into()
+        "ipci".into()
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
         Ok(match id {
             "dev" => Box::new(chain_spec::development_config()),
             "ipci" => Box::new(chain_spec::ipci_config()),
-            // #[cfg(feature = "parachain")]
-            // path => parachain::load_spec(path, self.run.parachain_id.unwrap_or(3000).into())?,
-            #[cfg(not(feature = "parachain"))]
             path => Box::new(chain_spec::ChainSpec::from_json_file(
                 std::path::PathBuf::from(path),
             )?),
         })
     }
 
-    fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
+    fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
         &ipci_runtime::VERSION
-        // match chain_spec.family() {
-        //     RobonomicsFamily::DaoIpci => &ipci_runtime::VERSION,
-        //     RobonomicsFamily::Development => &robonomics_runtime::VERSION,
-        //     #[cfg(feature = "parachain")]
-        //     RobonomicsFamily::Parachain => &robonomics_parachain_runtime::VERSION,
-        //     #[cfg(not(feature = "parachain"))]
-        //     RobonomicsFamily::Parachain => &robonomics_runtime::VERSION,
-        // }
     }
 }
 
@@ -98,43 +78,6 @@ pub fn run() -> sc_cli::Result<()> {
                     }
                 })
                 .map_err(Into::into)
-
-            //match runner.config().chain_spec.family() {
-            // RobonomicsFamily::DaoIpci => runner.run_node_until_exit(|config| async move {
-            //     match config.role {
-            //         Role::Light => ipci::new_light(config).map(|r| r.0),
-            //         _ => ipci::new_full(config),
-            //     }
-            // }),
-
-            // RobonomicsFamily::Development => runner.run_node_until_exit(|config| async move {
-            //     match config.role {
-            //         Role::Light => robonomics::new_light(config).map(|r| r.0),
-            //         _ => robonomics::new_full(config),
-            //     }
-            // }),
-            //
-            // RobonomicsFamily::Parachain => runner.run_node_until_exit(|config| async move {
-            //     if matches!(config.role, Role::Light) {
-            //         return Err("Light client not supporter!".into());
-            //     }
-            //
-            //     #[cfg(not(feature = "parachain"))]
-            //     {
-            //         return Err("Parachain feature isn't enabled".into());
-            //     }
-            //
-            //     #[cfg(feature = "parachain")]
-            //     parachain::command::run(
-            //         config,
-            //         &cli.relaychain_args,
-            //         cli.run.parachain_id,
-            //         cli.run.validator,
-            //     )
-            //     .await
-            // }),
-            //}
-            //.map_err(Into::into)
         }
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
         Some(Subcommand::Sign(cmd)) => cmd.run(),
@@ -148,11 +91,6 @@ pub fn run() -> sc_cli::Result<()> {
             let runner = cli.create_runner(cmd)?;
             runner.sync_run(|config| cmd.run(config.database))
         }
-        // #[cfg(feature = "robonomics-cli")]
-        // Some(Subcommand::Io(subcommand)) => {
-        //     let runner = cli.create_runner(subcommand)?;
-        //     runner.sync_run(|_| subcommand.run().map_err(|e| e.to_string().into()))
-        // }
         Some(Subcommand::Benchmark(subcommand)) => {
             if cfg!(feature = "runtime-benchmarks") {
                 let runner = cli.create_runner(subcommand)?;
@@ -164,55 +102,6 @@ pub fn run() -> sc_cli::Result<()> {
 				You can enable it with `--features runtime-benchmarks`."
                     .into())
             }
-        }
-        #[cfg(feature = "parachain")]
-        Some(Subcommand::ExportGenesisState(params)) => {
-            let mut builder = sc_cli::GlobalLoggerBuilder::new("");
-            builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
-            let _ = builder.init();
-
-            let block: node_primitives::Block = generate_genesis_block(&parachain::load_spec(
-                &params.chain.clone().unwrap_or_default(),
-                params.parachain_id.into(),
-            )?)?;
-            let raw_header = block.header().encode();
-            let output_buf = if params.raw {
-                raw_header
-            } else {
-                format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
-            };
-
-            if let Some(output) = &params.output {
-                std::fs::write(output, output_buf)?;
-            } else {
-                std::io::stdout().write_all(&output_buf)?;
-            }
-
-            Ok(())
-        }
-        #[cfg(feature = "parachain")]
-        Some(Subcommand::ExportGenesisWasm(params)) => {
-            let mut builder = sc_cli::GlobalLoggerBuilder::new("");
-            builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
-            let _ = builder.init();
-
-            let raw_wasm_blob = parachain::extract_genesis_wasm(
-                &cli.load_spec(&params.chain.clone().unwrap_or_default())?,
-            )?;
-
-            let output_buf = if params.raw {
-                raw_wasm_blob
-            } else {
-                format!("0x{:?}", HexDisplay::from(&raw_wasm_blob)).into_bytes()
-            };
-
-            if let Some(output) = &params.output {
-                std::fs::write(output, output_buf)?;
-            } else {
-                std::io::stdout().write_all(&output_buf)?;
-            }
-
-            Ok(())
         }
     }
 }

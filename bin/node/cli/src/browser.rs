@@ -16,7 +16,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use crate::chain_spec::{ChainSpec, RobonomicsChain, RobonomicsFamily};
+use crate::chain_spec::ChainSpec;
 use crate::service;
 use log::info;
 use std::str::FromStr;
@@ -57,24 +57,10 @@ async fn start_inner(
     info!("Node name: {}", config.network.node_name);
     info!("Role: {:?}", config.role);
 
-    // Create the service. This is the most heavy initialization step.
-    match config.chain_spec.family() {
-        RobonomicsFamily::DaoIpci => {
-            let (task_manager, rpc_handlers) =
-                service::ipci::new_light(config).map_err(|e| format!("{:?}", e))?;
-            Ok(substrate_browser_utils::start_client(
-                task_manager,
-                rpc_handlers,
-            ))
-        }
-        RobonomicsFamily::Development => {
-            let (task_manager, rpc_handlers) =
-                service::robonomics::new_light(config).map_err(|e| format!("{:?}", e))?;
-            Ok(substrate_browser_utils::start_client(
-                task_manager,
-                rpc_handlers,
-            ))
-        }
-        RobonomicsFamily::Parachain => unimplemented!(),
-    }
+    let (task_manager, rpc_handlers) =
+        service::ipci::new_light(config).map_err(|e| format!("{:?}", e))?;
+    Ok(substrate_browser_utils::start_client(
+        task_manager,
+        rpc_handlers,
+    ))
 }

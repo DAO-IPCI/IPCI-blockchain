@@ -19,8 +19,7 @@
 
 use node_primitives::{AccountId, Balance, Block, Index};
 use sc_client_api::{ExecutorProvider, RemoteBackend};
-use sc_consensus_babe;
-use sc_finality_grandpa::{self as grandpa, FinalityProofProvider as GrandpaFinalityProofProvider};
+use sc_finality_grandpa::{self as grandpa};
 use sc_network::NetworkService;
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sp_api::ConstructRuntimeApi;
@@ -70,6 +69,7 @@ where
 {
 }
 
+#[allow(clippy::type_complexity)]
 pub fn new_partial<Runtime, Executor>(
     config: &Configuration,
 ) -> Result<
@@ -211,19 +211,18 @@ where
     })
 }
 
+type FullBase<Runtime, Executor> = (
+    TaskManager,
+    InherentDataProviders,
+    Arc<FullClient<Runtime, Executor>>,
+    Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
+    Arc<sc_transaction_pool::FullPool<Block, FullClient<Runtime, Executor>>>,
+);
+
 /// Creates a full service from the configuration.
 pub fn new_full_base<Runtime, Executor>(
     mut config: Configuration,
-) -> Result<
-    (
-        TaskManager,
-        InherentDataProviders,
-        Arc<FullClient<Runtime, Executor>>,
-        Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
-        Arc<sc_transaction_pool::FullPool<Block, FullClient<Runtime, Executor>>>,
-    ),
-    ServiceError,
->
+) -> Result<FullBase<Runtime, Executor>, ServiceError>
 where
     Runtime: ConstructRuntimeApi<Block, FullClient<Runtime, Executor>> + Send + Sync + 'static,
     Runtime::RuntimeApi:
@@ -289,7 +288,7 @@ where
     let (_rpc_handlers, telemetry_connection_notifier) =
         sc_service::spawn_tasks(sc_service::SpawnTasksParams {
             config,
-            backend: backend.clone(),
+            backend,
             client: client.clone(),
             keystore: keystore_container.sync_keystore(),
             network: network.clone(),
@@ -388,24 +387,23 @@ where
     ))
 }
 
+type LightBase<Runtime, Executor> = (
+    TaskManager,
+    RpcHandlers,
+    Arc<LightClient<Runtime, Executor>>,
+    Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
+    Arc<
+        sc_transaction_pool::LightPool<
+            Block,
+            LightClient<Runtime, Executor>,
+            sc_network::config::OnDemand<Block>,
+        >,
+    >,
+);
+
 pub fn new_light_base<Runtime, Executor>(
     config: Configuration,
-) -> Result<
-    (
-        TaskManager,
-        RpcHandlers,
-        Arc<LightClient<Runtime, Executor>>,
-        Arc<NetworkService<Block, <Block as BlockT>::Hash>>,
-        Arc<
-            sc_transaction_pool::LightPool<
-                Block,
-                LightClient<Runtime, Executor>,
-                sc_network::config::OnDemand<Block>,
-            >,
-        >,
-    ),
-    ServiceError,
->
+) -> Result<LightBase<Runtime, Executor>, ServiceError>
 where
     Runtime: ConstructRuntimeApi<Block, LightClient<Runtime, Executor>> + Send + Sync + 'static,
     Runtime::RuntimeApi:
@@ -445,8 +443,8 @@ where
         babe_block_import,
         Some(Box::new(justification_import)),
         client.clone(),
-        select_chain.clone(),
-        inherent_data_providers.clone(),
+        select_chain,
+        inherent_data_providers,
         &task_manager.spawn_handle(),
         config.prometheus_registry(),
         sp_consensus::NeverCanAuthor,

@@ -34,31 +34,7 @@ use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_runtime::Perbill;
 
-/// Robonomics runtime family chains.
-pub enum RobonomicsFamily {
-    /// Development chain (used for local tests only).
-    Development,
-    /// DAO IPCI (ipci.io) chain (https://telemetry.polkadot.io/#list/DAO%20IPCI).
-    DaoIpci,
-    // Robonomics Network parachain (https://telemetry.polkadot.io/#list/Robonomics).
-    // Parachain,
-}
-
-/// Robonomics family chains idetify.
-pub trait RobonomicsChain {
-    fn family(&self) -> RobonomicsFamily;
-}
-
-impl RobonomicsChain for Box<dyn sc_chain_spec::ChainSpec> {
-    fn family(&self) -> RobonomicsFamily {
-        if self.id() == DAO_IPCI_ID {
-            return RobonomicsFamily::DaoIpci;
-        }
-
-        RobonomicsFamily::Development
-    }
-}
-
+#[allow(dead_code)]
 const DAO_IPCI_ID: &str = "ipci";
 
 type AccountPublic = <Signature as Verify>::Signer;
@@ -79,6 +55,7 @@ pub struct Extensions {
 /// Specialized `ChainSpec`.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
+/// Helper function to create session key structure
 fn session_keys(
     grandpa: GrandpaId,
     babe: BabeId,
@@ -197,16 +174,10 @@ fn mk_genesis(
         pallet_indices: Some(IndicesConfig { indices: vec![] }),
         pallet_balances: Some(BalancesConfig { balances }),
         pallet_babe: Some(BabeConfig {
-            authorities: initial_authorities
-                .iter()
-                .map(|x| (x.3.clone(), 1))
-                .collect(),
+            authorities: vec![],
         }),
         pallet_grandpa: Some(GrandpaConfig {
-            authorities: initial_authorities
-                .iter()
-                .map(|x| (x.2.clone(), 1))
-                .collect(),
+            authorities: vec![],
         }),
         pallet_session: Some(SessionConfig {
             keys: initial_authorities

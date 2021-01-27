@@ -44,10 +44,6 @@ pub struct Cli {
 pub struct RunCmd {
     #[structopt(flatten)]
     pub base: sc_cli::RunCmd,
-
-    /// Id of the parachain this collator collates for.
-    #[structopt(long)]
-    pub parachain_id: Option<u32>,
 }
 
 impl std::ops::Deref for RunCmd {
@@ -79,20 +75,7 @@ pub enum Subcommand {
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),
 
-    // /// Robonomics Framework I/O operations.
-    // #[cfg(feature = "robonomics-cli")]
-    // Io(robonomics_cli::IoCmd),
     /// Benchmarking runtime pallets.
     #[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
     Benchmark(frame_benchmarking_cli::BenchmarkCmd),
-
-    /// Export the genesis state of the parachain.
-    #[structopt(name = "export-genesis-state")]
-    #[cfg(feature = "parachain")]
-    ExportGenesisState(super::parachain::cli::ExportGenesisStateCommand),
-
-    /// Export the genesis wasm of the parachain.
-    #[structopt(name = "export-genesis-wasm")]
-    #[cfg(feature = "parachain")]
-    ExportGenesisWasm(super::parachain::cli::ExportGenesisWasmCommand),
 }

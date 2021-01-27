@@ -2,18 +2,18 @@
 name = "node-cli"
 version = "0.23.0"
 authors = ["Airalab <research@aira.life>"]
-description = "Robonomics node implementation in Rust & Substrate."
+description = "IPCI node implementation in Rust & Substrate."
 build = "build.rs"
 edition = "2018"
 license = "Apache-2.0"
 homepage = "https://robonomics.network"
 repository = "https://github.com/airalab/robonomics" 
-default-run = "robonomics"
+default-run = "ipci"
 
-[badges]
-maintenance = { status = "actively-developed" }
-is-it-maintained-issue-resolution = { repository = "airalab/robonomics" }
-is-it-maintained-open-issues = { repository = "airalab/robonomics" }
+#[badges]
+#maintenance = { status = "actively-developed" }
+#is-it-maintained-issue-resolution = { repository = "airalab/robonomics" }
+#is-it-maintained-open-issues = { repository = "airalab/robonomics" }
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -82,11 +82,11 @@ pallet-staking  = { git = "https://github.com/paritytech/substrate", branch = "r
 
 
 # cumulus dependencies
-cumulus-primitives = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
-cumulus-consensus = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
-cumulus-collator = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
-cumulus-network = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
-cumulus-service = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
+#cumulus-primitives = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
+#cumulus-consensus = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
+#cumulus-collator = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
+#cumulus-network = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
+#cumulus-service = { version = "0.1.0", git = "https://github.com/paritytech/cumulus", branch = "rococo-v1",  optional = true }
 
 # polkadot dependencies
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot", branch = "rococo-v1", optional = true }
@@ -125,28 +125,6 @@ structopt = { version = "0.3.8", optional = true }
 default = [
     "cli",
     "wasmtime",
-]
-
-## Enable Rococo relaychain integration.
-rococo = [
-    "rococo-parachain",
-    "parachain",
-]
-
-## Enable official Robonomics Rococo parachain spec.
-rococo-parachain = []
-
-## Enable parachain integration.
-parachain = [
-    "cumulus-primitives",
-    "cumulus-consensus",
-    "cumulus-collator",
-    "cumulus-network",
-    "cumulus-service",
-    "polkadot-primitives",
-    "polkadot-parachain",
-    "polkadot-service",
-    "polkadot-cli",
 ]
 
 ## Enable Wasmtime virtual machine.
