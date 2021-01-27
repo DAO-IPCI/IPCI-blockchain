@@ -16,11 +16,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use crate::{
-    chain_spec::*,
-    service::{ipci, robonomics},
-    Cli, Subcommand,
-};
+use crate::{chain_spec, service::ipci, Cli, Subcommand};
 use codec::Encode;
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 use sp_api::BlockT;
@@ -63,24 +59,27 @@ impl SubstrateCli for Cli {
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
         Ok(match id {
-            "dev" => Box::new(development_config()),
-            "ipci" => Box::new(ipci_config()),
-            #[cfg(feature = "parachain")]
-            path => parachain::load_spec(path, self.run.parachain_id.unwrap_or(3000).into())?,
+            "dev" => Box::new(chain_spec::development_config()),
+            "ipci" => Box::new(chain_spec::ipci_config()),
+            // #[cfg(feature = "parachain")]
+            // path => parachain::load_spec(path, self.run.parachain_id.unwrap_or(3000).into())?,
             #[cfg(not(feature = "parachain"))]
-            path => Err("Unknown spec")?,
+            path => Box::new(chain_spec::ChainSpec::from_json_file(
+                std::path::PathBuf::from(path),
+            )?),
         })
     }
 
     fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-        match chain_spec.family() {
-            RobonomicsFamily::DaoIpci => &ipci_runtime::VERSION,
-            RobonomicsFamily::Development => &robonomics_runtime::VERSION,
-            #[cfg(feature = "parachain")]
-            RobonomicsFamily::Parachain => &robonomics_parachain_runtime::VERSION,
-            #[cfg(not(feature = "parachain"))]
-            RobonomicsFamily::Parachain => &robonomics_runtime::VERSION,
-        }
+        &ipci_runtime::VERSION
+        // match chain_spec.family() {
+        //     RobonomicsFamily::DaoIpci => &ipci_runtime::VERSION,
+        //     RobonomicsFamily::Development => &robonomics_runtime::VERSION,
+        //     #[cfg(feature = "parachain")]
+        //     RobonomicsFamily::Parachain => &robonomics_parachain_runtime::VERSION,
+        //     #[cfg(not(feature = "parachain"))]
+        //     RobonomicsFamily::Parachain => &robonomics_runtime::VERSION,
+        // }
     }
 }
 
@@ -91,42 +90,51 @@ pub fn run() -> sc_cli::Result<()> {
     match &cli.subcommand {
         None => {
             let runner = cli.create_runner(&*cli.run)?;
-            match runner.config().chain_spec.family() {
-                RobonomicsFamily::DaoIpci => runner.run_node_until_exit(|config| async move {
+            runner
+                .run_node_until_exit(|config| async move {
                     match config.role {
                         Role::Light => ipci::new_light(config).map(|r| r.0),
                         _ => ipci::new_full(config),
                     }
-                }),
+                })
+                .map_err(Into::into)
 
-                RobonomicsFamily::Development => runner.run_node_until_exit(|config| async move {
-                    match config.role {
-                        Role::Light => robonomics::new_light(config).map(|r| r.0),
-                        _ => robonomics::new_full(config),
-                    }
-                }),
+            //match runner.config().chain_spec.family() {
+            // RobonomicsFamily::DaoIpci => runner.run_node_until_exit(|config| async move {
+            //     match config.role {
+            //         Role::Light => ipci::new_light(config).map(|r| r.0),
+            //         _ => ipci::new_full(config),
+            //     }
+            // }),
 
-                RobonomicsFamily::Parachain => runner.run_node_until_exit(|config| async move {
-                    if matches!(config.role, Role::Light) {
-                        return Err("Light client not supporter!".into());
-                    }
-
-                    #[cfg(not(feature = "parachain"))]
-                    {
-                        return Err("Parachain feature isn't enabled".into());
-                    }
-
-                    #[cfg(feature = "parachain")]
-                    parachain::command::run(
-                        config,
-                        &cli.relaychain_args,
-                        cli.run.parachain_id,
-                        cli.run.validator,
-                    )
-                    .await
-                }),
-            }
-            .map_err(Into::into)
+            // RobonomicsFamily::Development => runner.run_node_until_exit(|config| async move {
+            //     match config.role {
+            //         Role::Light => robonomics::new_light(config).map(|r| r.0),
+            //         _ => robonomics::new_full(config),
+            //     }
+            // }),
+            //
+            // RobonomicsFamily::Parachain => runner.run_node_until_exit(|config| async move {
+            //     if matches!(config.role, Role::Light) {
+            //         return Err("Light client not supporter!".into());
+            //     }
+            //
+            //     #[cfg(not(feature = "parachain"))]
+            //     {
+            //         return Err("Parachain feature isn't enabled".into());
+            //     }
+            //
+            //     #[cfg(feature = "parachain")]
+            //     parachain::command::run(
+            //         config,
+            //         &cli.relaychain_args,
+            //         cli.run.parachain_id,
+            //         cli.run.validator,
+            //     )
+            //     .await
+            // }),
+            //}
+            //.map_err(Into::into)
         }
         Some(Subcommand::Key(cmd)) => cmd.run(&cli),
         Some(Subcommand::Sign(cmd)) => cmd.run(),
@@ -140,22 +148,21 @@ pub fn run() -> sc_cli::Result<()> {
             let runner = cli.create_runner(cmd)?;
             runner.sync_run(|config| cmd.run(config.database))
         }
-        #[cfg(feature = "robonomics-cli")]
-        Some(Subcommand::Io(subcommand)) => {
-            let runner = cli.create_runner(subcommand)?;
-            runner.sync_run(|_| subcommand.run().map_err(|e| e.to_string().into()))
-        }
-        #[cfg(feature = "frame-benchmarking-cli")]
+        // #[cfg(feature = "robonomics-cli")]
+        // Some(Subcommand::Io(subcommand)) => {
+        //     let runner = cli.create_runner(subcommand)?;
+        //     runner.sync_run(|_| subcommand.run().map_err(|e| e.to_string().into()))
+        // }
         Some(Subcommand::Benchmark(subcommand)) => {
-            let runner = cli.create_runner(subcommand)?;
-            match runner.config().chain_spec.family() {
-                RobonomicsFamily::DaoIpci => runner.sync_run(|config| {
+            if cfg!(feature = "runtime-benchmarks") {
+                let runner = cli.create_runner(subcommand)?;
+                runner.sync_run(|config| {
                     subcommand.run::<node_primitives::Block, ipci::Executor>(config)
-                }),
-                RobonomicsFamily::Development => runner.sync_run(|config| {
-                    subcommand.run::<node_primitives::Block, robonomics::Executor>(config)
-                }),
-                _ => Err("Unknown chain")?,
+                })
+            } else {
+                Err("Benchmarking wasn't enabled when building the node. \
+				You can enable it with `--features runtime-benchmarks`."
+                    .into())
             }
         }
         #[cfg(feature = "parachain")]

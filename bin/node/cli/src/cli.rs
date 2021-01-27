@@ -79,12 +79,11 @@ pub enum Subcommand {
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),
 
-    /// Robonomics Framework I/O operations.
-    #[cfg(feature = "robonomics-cli")]
-    Io(robonomics_cli::IoCmd),
-
+    // /// Robonomics Framework I/O operations.
+    // #[cfg(feature = "robonomics-cli")]
+    // Io(robonomics_cli::IoCmd),
     /// Benchmarking runtime pallets.
-    #[cfg(feature = "frame-benchmarking-cli")]
+    #[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
     Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
     /// Export the genesis state of the parachain.

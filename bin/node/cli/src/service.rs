@@ -152,8 +152,10 @@ where
         let shared_voter_state = grandpa::SharedVoterState::empty();
         let rpc_setup = shared_voter_state.clone();
 
-        let finality_proof_provider =
-            GrandpaFinalityProofProvider::new_for_service(backend.clone(), client.clone());
+        let finality_proof_provider = grandpa::FinalityProofProvider::new_for_service(
+            backend.clone(),
+            Some(shared_authority_set.clone()),
+        );
 
         let babe_config = babe_link.config().clone();
         let shared_epoch_changes = babe_link.epoch_changes().clone();
@@ -540,34 +542,34 @@ pub mod ipci {
     }
 }
 
-///  Robonomics chain services.
-pub mod robonomics {
-    use robonomics_runtime::RuntimeApi;
-    use sc_service::{config::Configuration, error::Result, RpcHandlers, TaskManager};
-
-    #[cfg(feature = "frame-benchmarking")]
-    sc_executor::native_executor_instance!(
-        pub Executor,
-        robonomics_runtime::api::dispatch,
-        robonomics_runtime::native_version,
-        frame_benchmarking::benchmarking::HostFunctions,
-    );
-
-    #[cfg(not(feature = "frame-benchmarking"))]
-    sc_executor::native_executor_instance!(
-        pub Executor,
-        robonomics_runtime::api::dispatch,
-        robonomics_runtime::native_version,
-    );
-
-    /// Create a new Robonomics service for a full node.
-    pub fn new_full(config: Configuration) -> Result<TaskManager> {
-        super::new_full_base::<RuntimeApi, Executor>(config)
-            .map(|(task_manager, _, _, _, _)| task_manager)
-    }
-
-    pub fn new_light(config: Configuration) -> Result<(TaskManager, RpcHandlers)> {
-        super::new_light_base::<RuntimeApi, Executor>(config)
-            .map(|(task_manager, rpc_handlers, _, _, _)| (task_manager, rpc_handlers))
-    }
-}
+// ///  Robonomics chain services.
+// pub mod robonomics {
+//     use robonomics_runtime::RuntimeApi;
+//     use sc_service::{config::Configuration, error::Result, RpcHandlers, TaskManager};
+//
+//     #[cfg(feature = "frame-benchmarking")]
+//     sc_executor::native_executor_instance!(
+//         pub Executor,
+//         robonomics_runtime::api::dispatch,
+//         robonomics_runtime::native_version,
+//         frame_benchmarking::benchmarking::HostFunctions,
+//     );
+//
+//     #[cfg(not(feature = "frame-benchmarking"))]
+//     sc_executor::native_executor_instance!(
+//         pub Executor,
+//         robonomics_runtime::api::dispatch,
+//         robonomics_runtime::native_version,
+//     );
+//
+//     /// Create a new Robonomics service for a full node.
+//     pub fn new_full(config: Configuration) -> Result<TaskManager> {
+//         super::new_full_base::<RuntimeApi, Executor>(config)
+//             .map(|(task_manager, _, _, _, _)| task_manager)
+//     }
+//
+//     pub fn new_light(config: Configuration) -> Result<(TaskManager, RpcHandlers)> {
+//         super::new_light_base::<RuntimeApi, Executor>(config)
+//             .map(|(task_manager, rpc_handlers, _, _, _)| (task_manager, rpc_handlers))
+//     }
+// }
