@@ -80,6 +80,9 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 use constants::{currency::*, time::*};
+use frame_support::weights::{
+    WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+};
 
 /// This runtime version.
 pub const VERSION: RuntimeVersion = RuntimeVersion {
@@ -154,6 +157,24 @@ impl pallet_utility::Trait for Runtime {
 }
 
 parameter_types! {
+    // One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+    pub const DepositBase: Balance = deposit(1, 88);
+    // Additional storage item size of 32 bytes.
+    pub const DepositFactor: Balance = deposit(0, 32);
+    pub const MaxSignatories: u16 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+    type Event = Event;
+    type Call = Call;
+    type Currency = Balances;
+    type DepositBase = DepositBase;
+    type DepositFactor = DepositFactor;
+    type MaxSignatories = MaxSignatories;
+    type WeightInfo = ();
+}
+
+parameter_types! {
     pub const MinimumPeriod: Moment = SLOT_DURATION / 2;
 }
 
@@ -216,7 +237,7 @@ impl pallet_indices::Trait for Runtime {
 
 parameter_types! {
     pub const ExistentialDeposit: Balance = 50_000 * U_MITO; // No less that base transaction fee
-    pub const MaxLocks: u32 = 50;
+    pub const MaxLocks: u32 = 32;
 }
 
 impl pallet_balances::Trait for Runtime {
@@ -232,8 +253,23 @@ impl pallet_balances::Trait for Runtime {
 parameter_types! {
     pub const TransactionByteFee: Balance = 1 * U_MITO;
     pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-    pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
+    pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(3, 100_000);
     pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128);
+}
+
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+    type Balance = Balance;
+    fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+        let p = U_MITO;
+        let q = MITO * Balance::from(ExtrinsicBaseWeight::get());
+        smallvec::smallvec![WeightToFeeCoefficient {
+            degree: 1,
+            negative: false,
+            coeff_frac: Perbill::from_rational_approximation(p % q, q),
+            coeff_integer: p / q,
+        }]
+    }
 }
 
 impl pallet_transaction_payment::Trait for Runtime {
