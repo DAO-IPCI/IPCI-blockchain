@@ -16,7 +16,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use sc_cli::{KeySubcommand, SignCmd, VanityCmd, VerifyCmd};
+use sc_cli::{KeySubcommand, RunCmd, SignCmd, VanityCmd, VerifyCmd};
 use structopt::StructOpt;
 
 /// An overarching CLI command definition.
@@ -40,20 +40,6 @@ pub struct Cli {
     pub relaychain_args: Vec<String>,
 }
 
-#[derive(Debug, StructOpt)]
-pub struct RunCmd {
-    #[structopt(flatten)]
-    pub base: sc_cli::RunCmd,
-}
-
-impl std::ops::Deref for RunCmd {
-    type Target = sc_cli::RunCmd;
-
-    fn deref(&self) -> &Self::Target {
-        &self.base
-    }
-}
-
 /// Possible subcommands of the main binary.
 #[derive(Debug, StructOpt)]
 pub enum Subcommand {
@@ -71,6 +57,9 @@ pub enum Subcommand {
 
     /// Build a chain specification.
     BuildSpec(sc_cli::BuildSpecCmd),
+
+    /// Build a chain specification with a light client sync state.
+    BuildSyncSpec(sc_cli::BuildSyncSpecCmd),
 
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),

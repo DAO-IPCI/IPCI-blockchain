@@ -16,12 +16,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use crate::{chain_spec, service::ipci, Cli, Subcommand};
+use crate::{
+    chain_spec,
+    service::{ipci, new_full_base, NewFullBase},
+    Cli, Subcommand,
+};
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "airalab-robonomics".into()
+        "airalab-ipcs".into()
     }
 
     fn impl_version() -> String {
@@ -69,23 +73,37 @@ pub fn run() -> sc_cli::Result<()> {
 
     match &cli.subcommand {
         None => {
-            let runner = cli.create_runner(&*cli.run)?;
-            runner
-                .run_node_until_exit(|config| async move {
-                    match config.role {
-                        Role::Light => ipci::new_light(config).map(|r| r.0),
-                        _ => ipci::new_full(config),
-                    }
-                })
-                .map_err(Into::into)
+            let runner = cli.create_runner(&cli.run)?;
+            runner.run_node_until_exit(|config| match config.role {
+                Role::Light => ipci::new_light(config),
+                _ => ipci::new_full(config),
+            })
         }
-        Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+        Some(Subcommand::Key(cmd)) => cmd.run(),
         Some(Subcommand::Sign(cmd)) => cmd.run(),
         Some(Subcommand::Verify(cmd)) => cmd.run(),
         Some(Subcommand::Vanity(cmd)) => cmd.run(),
         Some(Subcommand::BuildSpec(cmd)) => {
             let runner = cli.create_runner(cmd)?;
             runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+        }
+        Some(Subcommand::BuildSyncSpec(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let chain_spec = config.chain_spec.cloned_box();
+                let network_config = config.network.clone();
+                let NewFullBase {
+                    task_manager,
+                    client,
+                    network_status_sinks,
+                    ..
+                } = new_full_base(config, |_, _| ())?;
+
+                Ok((
+                    cmd.run(chain_spec, network_config, client, network_status_sinks),
+                    task_manager,
+                ))
+            })
         }
         Some(Subcommand::PurgeChain(cmd)) => {
             let runner = cli.create_runner(cmd)?;

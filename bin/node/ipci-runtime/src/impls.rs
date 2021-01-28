@@ -15,21 +15,30 @@
 //  limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
-//! Console line interface.
-#![warn(unused_extern_crates)]
-pub mod chain_spec;
+//! Some configurable implementations as associated type for the substrate runtime.
 
-#[macro_use]
-mod service;
+use crate::Balances;
+use node_primitives::Balance;
+use sp_runtime::traits::Convert;
 
-#[cfg(feature = "cli")]
-mod cli;
-#[cfg(feature = "cli")]
-mod command;
+/// Struct that handles the conversion of Balance -> `u64`. This is used for staking's election
+/// calculation.
+pub struct CurrencyToVoteHandler;
 
-#[cfg(feature = "browser")]
-pub use browser::*;
-#[cfg(feature = "cli")]
-pub use cli::*;
-#[cfg(feature = "cli")]
-pub use command::*;
+impl CurrencyToVoteHandler {
+    fn factor() -> Balance {
+        (Balances::total_issuance() / u64::max_value() as Balance).max(1)
+    }
+}
+
+impl Convert<Balance, u64> for CurrencyToVoteHandler {
+    fn convert(x: Balance) -> u64 {
+        (x / Self::factor()) as u64
+    }
+}
+
+impl Convert<u128, Balance> for CurrencyToVoteHandler {
+    fn convert(x: u128) -> Balance {
+        x * Self::factor()
+    }
+}

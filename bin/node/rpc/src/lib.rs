@@ -41,6 +41,7 @@ use sc_finality_grandpa::{
     FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
 };
 use sc_finality_grandpa_rpc::GrandpaRpcHandler;
+use sc_keystore::KeyStorePtr;
 use sc_rpc::SubscriptionTaskExecutor;
 pub use sc_rpc_api::DenyUnsafe;
 use sp_api::ProvideRuntimeApi;
@@ -48,7 +49,6 @@ use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SelectChain;
 use sp_consensus_babe::BabeApi;
-use sp_keystore::SyncCryptoStorePtr;
 use sp_transaction_pool::TransactionPool;
 
 /// Light client extra dependencies.
@@ -70,7 +70,7 @@ pub struct BabeDeps {
     /// BABE pending epoch changes.
     pub shared_epoch_changes: SharedEpochChanges<Block, Epoch>,
     /// The keystore that manages the keys of the node.
-    pub keystore: SyncCryptoStorePtr,
+    pub keystore: KeyStorePtr,
 }
 
 /// Extra dependencies for GRANDPA
@@ -95,8 +95,6 @@ pub struct FullDeps<C, P, SC, B> {
     pub pool: Arc<P>,
     /// The SelectChain Strategy
     pub select_chain: SC,
-    /// A copy of the chain spec.
-    pub chain_spec: Box<dyn sc_chain_spec::ChainSpec>,
     /// Whether to deny unsafe calls
     pub deny_unsafe: DenyUnsafe,
     /// BABE specific dependencies.
@@ -137,7 +135,6 @@ where
         client,
         pool,
         select_chain,
-        chain_spec,
         deny_unsafe,
         babe,
         grandpa,
@@ -183,16 +180,18 @@ where
             finality_provider,
         ),
     ));
+    // sync state for light client feature is available only in latest commits of
+    // substrate. the 2.0.1 release doesnt't have this feature.
 
-    io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
-        sc_sync_state_rpc::SyncStateRpcHandler::new(
-            chain_spec,
-            client,
-            shared_authority_set,
-            shared_epoch_changes,
-            deny_unsafe,
-        ),
-    ));
+    // io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
+    //     sc_sync_state_rpc::SyncStateRpcHandler::new(
+    //         chain_spec,
+    //         client,
+    //         shared_authority_set,
+    //         shared_epoch_changes,
+    //         deny_unsafe,
+    //     ),
+    // ));
 
     io
 }
