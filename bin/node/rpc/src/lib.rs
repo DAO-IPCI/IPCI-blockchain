@@ -181,7 +181,7 @@ where
         ),
     ));
     // sync state for light client feature is available only in latest commits of
-    // substrate. the 2.0.1 release doesnt't have this feature.
+    // substrate. the 2.0.1 release doesn't have this feature.
 
     // io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
     //     sc_sync_state_rpc::SyncStateRpcHandler::new(

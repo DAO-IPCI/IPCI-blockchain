@@ -164,7 +164,7 @@ parameter_types! {
     pub const MaxSignatories: u16 = 100;
 }
 
-impl pallet_multisig::Config for Runtime {
+impl pallet_multisig::Trait for Runtime {
     type Event = Event;
     type Call = Call;
     type Currency = Balances;
@@ -454,6 +454,28 @@ impl pallet_robonomics_datalog::Trait for Runtime {
     type Event = Event;
 }
 
+// Evercity bond module
+const DEFAULT_DAY_DURATION: u32 = 60; // 86400; seconds in 1 DAY
+
+parameter_types! {
+    pub const BurnRequestTtl: u32 = DEFAULT_DAY_DURATION as u32 * 7 * 1000;
+    pub const MintRequestTtl: u32 = DEFAULT_DAY_DURATION as u32 * 7 * 1000;
+    pub const MaxMintAmount: pallet_evercity::EverUSDBalance = 60_000_000_000_000_000;
+    pub const TimeStep: pallet_evercity::BondPeriod = DEFAULT_DAY_DURATION;
+}
+
+
+impl pallet_evercity::Trait for Runtime {
+    type Event = Event;
+    type BurnRequestTtl = BurnRequestTtl;
+    type MintRequestTtl = MintRequestTtl;
+    type MaxMintAmount = MaxMintAmount;
+    type TimeStep = TimeStep;
+    type WeightInfo = ();
+    type OnAddAccount = ();
+    type OnAddBond = ();
+}
+
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
 where
     Call: From<LocalCall>,
@@ -528,6 +550,7 @@ construct_runtime!(
         Indices: pallet_indices::{Module, Call, Storage, Event<T>, Config<T>},
         Balances: pallet_balances::{Module, Call, Storage, Event<T>, Config<T>},
         TransactionPayment: pallet_transaction_payment::{Module, Storage},
+        Multisig: pallet_multisig::{Module, Call, Storage, Event<T>},
 
         // Randomness.
         RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Module, Call, Storage},
@@ -549,6 +572,8 @@ construct_runtime!(
 
         // Sudo. Usable initially.
         Sudo: pallet_sudo::{Module, Call, Storage, Event<T>, Config<T>},
+
+        Evercity: pallet_evercity::{Module, Call, Storage, Event<T>},
     }
 );
 

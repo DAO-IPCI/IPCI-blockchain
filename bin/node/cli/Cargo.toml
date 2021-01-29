@@ -87,6 +87,7 @@ pallet-staking  = { version = "2.0.1" }
 node-rpc = { path = "../rpc" }
 ipci-runtime = { path = "../ipci-runtime" }
 
+
 # CLI-specific dependencies
 sc-cli = { version = "0.8.1", optional = true }
 frame-benchmarking-cli = { version = "2.0.1", optional = true }
