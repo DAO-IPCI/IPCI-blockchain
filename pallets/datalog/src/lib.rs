@@ -71,7 +71,7 @@ decl_module! {
             let now = T::Time::now();
             <Datalog<T>>::mutate(
                 sender.clone(),
-                |m| m.push((now.clone(), record.clone()))
+                |m| m.push((now, record.clone()))
             );
             Self::deposit_event(RawEvent::NewRecord(sender, now, record));
         }

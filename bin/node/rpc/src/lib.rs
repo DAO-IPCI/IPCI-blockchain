@@ -163,8 +163,8 @@ where
     )));
     io.extend_with(sc_consensus_babe_rpc::BabeApi::to_delegate(
         BabeRpcHandler::new(
-            client.clone(),
-            shared_epoch_changes.clone(),
+            client,
+            shared_epoch_changes,
             keystore,
             babe_config,
             select_chain,
@@ -173,7 +173,7 @@ where
     ));
     io.extend_with(sc_finality_grandpa_rpc::GrandpaApi::to_delegate(
         GrandpaRpcHandler::new(
-            shared_authority_set.clone(),
+            shared_authority_set,
             shared_voter_state,
             justification_stream,
             subscription_executor,

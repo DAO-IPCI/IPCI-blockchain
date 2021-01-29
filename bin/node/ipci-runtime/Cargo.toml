@@ -61,14 +61,13 @@ pallet-finality-tracker = { version = "2.0.1", default-features = false }
 pallet-robonomics-datalog = { path="../../../pallets/datalog", default-features = false }
 
 # extra pallets
-pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "stable", optional = true, default-features = false }
+pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "stable", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = "3.0.0"
 
 [features]
 default = ["std"]
-evercity = ["pallet-evercity"]
 std = [
     "codec/std",
     "lazy_static",
