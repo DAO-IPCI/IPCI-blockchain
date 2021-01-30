@@ -112,6 +112,7 @@ std = [
     "sp-inherents/std",
     "pallet-robonomics-datalog/std",
     "pallet-evercity/std",
+    "pallet-evercity-transfer/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking",
