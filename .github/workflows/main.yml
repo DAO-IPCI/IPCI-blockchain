@@ -1,0 +1,91 @@
+name:                              Compilation and Testing Suite
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths-ignore:
+      - 'README.md'
+jobs:
+
+## Check Stage
+  check-test-build:
+    name:                          Check, test and build
+    runs-on:                       ubuntu-latest
+    steps:
+      - name:                      Cancel Previous Runs
+        uses:                      styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token:            ${{ github.token }}
+      - name:                      Checkout sources & submodules
+        uses:                      actions/checkout@v2
+        with:
+          fetch-depth:             2
+          submodules:              true
+      - name:                      Install nightly
+        uses:                      actions-rs/toolchain@v1
+        with:
+            target:                wasm32-unknown-unknown
+            components:            rustfmt, clippy
+      - name:                      Checking rust
+        uses:                      actions-rs/cargo@master
+        with:
+          command:                 check
+          args:                    --all  --verbose
+
+## Test Stage
+      - name:                      Testing rust
+        uses:                      actions-rs/cargo@master
+        with:
+          command:                 test
+          args:                    --all  --verbose
+
+## Linting Stage
+      - name:                      Clippy
+        uses:                      actions-rs/cargo@master
+        with:
+          command:                 clippy
+          args:                    --all-targets -- -D warnings
+
+## Build Stage
+      - name:                      Building rust
+        uses:                      actions-rs/cargo@master
+        if:                        github.ref == 'refs/heads/main'
+        with:
+          command:                 build
+          args:                    --all --release --verbose
+      - name:                      Prepare artifacts
+        if:                        github.ref == 'refs/heads/main'
+        uses:                      actions/upload-artifact@master
+        with:
+          name:                    ipci
+          path:                    target/release/ipci
+
+## Build benchmark
+  benchmarks:
+    runs-on:                       ubuntu-latest
+    steps:
+      - name:                      Checkout sources & submodules
+        uses:                      actions/checkout@v2
+        with:
+          fetch-depth:             5
+          submodules:              true
+      - name:                      Install nightly
+        uses:                      actions-rs/toolchain@v1
+        with:
+            target:                wasm32-unknown-unknown
+            components:            rustfmt, clippy
+
+      - name:                      Build runtime benchmarks version
+        run: |
+          cd bin/node/cli
+          cargo build --release --no-default-features --features cli,runtime-benchmarks 
+          cd ../../..
+      - uses:                      actions/upload-artifact@master
+        with:
+          name:                    ipci-benchmarks
+          path:                    target/release/ipci
+
