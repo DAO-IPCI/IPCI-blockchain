@@ -18,8 +18,8 @@
 //! Some configurable implementations as associated type for the substrate runtime.
 
 use crate::Balances;
+use frame_support::sp_runtime::traits::Convert;
 use node_primitives::Balance;
-use sp_runtime::traits::Convert;
 
 /// Struct that handles the conversion of Balance -> `u64`. This is used for staking's election
 /// calculation.

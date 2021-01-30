@@ -630,9 +630,9 @@ dependencies = [
 
 [[package]]
 name = "bumpalo"
-version = "3.5.0"
+version = "3.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f07aa6688c702439a1be0307b6a94dffe1168569e45b9500c1372bc580740d59"
+checksum = "099e596ef14349721d9016f6b80dd3419ea1bf289ab9b44df8e4dfd3a005d5d9"
 
 [[package]]
 name = "byte-slice-cast"
@@ -1165,9 +1165,9 @@ dependencies = [
 
 [[package]]
 name = "data-encoding"
-version = "2.3.1"
+version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "993a608597367c6377b258c25d7120740f00ed23a2252b729b1932dd7866f908"
+checksum = "3ee2393c4a91429dffb4bedf19f4d6abf27d8a732c8ce4980305d782e5426d57"
 
 [[package]]
 name = "derive_more"
@@ -1466,9 +1466,9 @@ checksum = "37ab347416e802de484e4d03c7316c48f1ecb56574dfd4a46a80f173ce1de04d"
 
 [[package]]
 name = "flate2"
-version = "1.0.19"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7411863d55df97a419aa64cb4d2f167103ea9d767e2c54a1868b7ac3f6b47129"
+checksum = "cd3aec53de10fe96d7d8c565eb17f2c687bb5518a2ec453b5b1252964526abe0"
 dependencies = [
  "cfg-if 1.0.0",
  "crc32fast",
@@ -2458,6 +2458,7 @@ dependencies = [
  "pallet-babe",
  "pallet-balances",
  "pallet-evercity",
+ "pallet-evercity-transfer",
  "pallet-finality-tracker",
  "pallet-grandpa",
  "pallet-identity",
@@ -2490,7 +2491,6 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std",
  "sp-transaction-pool",
  "sp-version",
  "substrate-wasm-builder",
@@ -2750,9 +2750,9 @@ checksum = "3576a87f2ba00f6f106fdfcd16db1d698d648a26ad8e0573cad8537c3c362d2a"
 
 [[package]]
 name = "libc"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7eb0c4e9c72ee9d69b767adebc5f4788462a3b45624acd919475c92597bcaf4f"
+checksum = "1cca32fa0182e8c0989459524dc356b8f2b5c10f1b9eb521b7d182c03cf8c5ff"
 
 [[package]]
 name = "libloading"
@@ -3689,6 +3689,7 @@ dependencies = [
 name = "node-rpc"
 version = "0.23.0"
 dependencies = [
+ "frame-support",
  "jsonrpc-core",
  "node-primitives",
  "pallet-transaction-payment-rpc",
@@ -3708,7 +3709,6 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
- "sp-runtime",
  "sp-transaction-pool",
  "substrate-frame-rpc-system",
 ]
@@ -3942,8 +3942,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-evercity"
-version = "0.0.2"
-source = "git+https://github.com/EvercityEcosystem/evercity-substrate?branch=stable#2349c2fe200cdc831d86a444d0ddb0273ec53ccd"
+version = "0.0.3"
+source = "git+https://github.com/EvercityEcosystem/evercity-substrate?branch=stable#aeaf676398eda1b6ff2383e5c65fcc3d9f6d3d2c"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -3952,6 +3952,16 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-api",
+]
+
+[[package]]
+name = "pallet-evercity-transfer"
+version = "0.0.3"
+source = "git+https://github.com/EvercityEcosystem/evercity-substrate?branch=stable#aeaf676398eda1b6ff2383e5c65fcc3d9f6d3d2c"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
 ]
 
 [[package]]
@@ -4130,9 +4140,6 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -8178,7 +8185,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04f8ab788026715fa63b31960869617cba39117e520eb415b0139543e325ab59"
 dependencies = [
  "cfg-if 0.1.10",
- "rand 0.7.3",
+ "rand 0.3.23",
  "static_assertions",
 ]
 

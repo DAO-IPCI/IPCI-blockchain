@@ -63,19 +63,19 @@ use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_inherents::{CheckInherentsResult, InherentData};
-use sp_runtime::curve::PiecewiseLinear;
-use sp_runtime::traits::{
-    self, BlakeTwo256, Block as BlockT, NumberFor, OpaqueKeys, SaturatedConversion, Saturating,
-    StaticLookup,
-};
-use sp_runtime::transaction_validity::{
-    TransactionPriority, TransactionSource, TransactionValidity,
-};
 use sp_runtime::{
-    create_runtime_str, generic, impl_opaque_keys, ApplyExtrinsicResult, FixedPointNumber, Perbill,
-    Perquintill,
+    create_runtime_str,
+    curve::PiecewiseLinear,
+    generic, impl_opaque_keys,
+    traits::{
+        self, BlakeTwo256, Block as BlockT, NumberFor, OpaqueKeys, SaturatedConversion, Saturating,
+        StaticLookup,
+    },
+    transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
+    ApplyExtrinsicResult, FixedPointNumber, Perbill, Perquintill,
 };
-use sp_std::prelude::*;
+
+use frame_support::sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
@@ -94,8 +94,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     // and set impl_version to equal spec_version. If only runtime
     // implementation changes and behavior does not, then leave spec_version as
     // is and increment impl_version.
-    spec_version: 8,
-    impl_version: 8,
+    spec_version: 10,
+    impl_version: 10,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
 };
@@ -465,7 +465,6 @@ parameter_types! {
     pub const TimeStep: pallet_evercity::BondPeriod = DEFAULT_DAY_DURATION;
 }
 
-
 impl pallet_evercity::Trait for Runtime {
     type Event = Event;
     type BurnRequestTtl = BurnRequestTtl;
@@ -475,6 +474,17 @@ impl pallet_evercity::Trait for Runtime {
     type WeightInfo = ();
     type OnAddAccount = ();
     type OnAddBond = ();
+}
+
+parameter_types! {
+    pub const MaximumTransferValue: Balance = 100 * MITO;
+}
+
+impl pallet_evercity_transfer::Trait for Runtime {
+    type Event = Event;
+    type MaximumTransferValue = MaximumTransferValue;
+    type Currency = Balances;
+    type WeightInfo = ();
 }
 
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
@@ -575,6 +585,7 @@ construct_runtime!(
         Sudo: pallet_sudo::{Module, Call, Storage, Event<T>, Config<T>},
 
         Evercity: pallet_evercity::{Module, Call, Storage, Event<T>},
+        EvercityTransfer: pallet_evercity_transfer::{Module, Call, Storage, Event<T>},
     }
 );
 

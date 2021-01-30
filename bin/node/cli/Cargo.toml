@@ -7,13 +7,13 @@ build = "build.rs"
 edition = "2018"
 license = "Apache-2.0"
 homepage = "https://robonomics.network"
-repository = "https://github.com/airalab/robonomics" 
+repository = "https://github.com/DAO-IPCI/IPCI-blockchain"
 default-run = "ipci"
 
-#[badges]
-#maintenance = { status = "actively-developed" }
-#is-it-maintained-issue-resolution = { repository = "airalab/robonomics" }
-#is-it-maintained-open-issues = { repository = "airalab/robonomics" }
+[badges]
+maintenance = { status = "actively-developed" }
+is-it-maintained-issue-resolution = { repository = "DAO-IPCI/IPCI-blockchain" }
+is-it-maintained-open-issues = { repository = "DAO-IPCI/IPCI-blockchain" }
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]

@@ -5,6 +5,7 @@ members = [
     "bin/node/ipci-runtime",
     "bin/node/rpc",
     "bin/node/primitives",
+    "pallets/datalog",
 ]
 
 [profile.release]

@@ -19,10 +19,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{Codec, EncodeLike};
+use frame_support::sp_runtime::traits::Member;
+use frame_support::sp_std::prelude::*;
 use frame_support::{decl_event, decl_module, decl_storage, traits::Time};
 use frame_system::ensure_signed;
-use sp_runtime::traits::Member;
-use sp_std::prelude::*;
 
 /// Type synonym for timestamp data type.
 pub type MomentOf<T> = <<T as Trait>::Time as Time>::Moment;
@@ -91,10 +91,18 @@ mod tests {
     use super::*;
 
     use base58::FromBase58;
-    use frame_support::{assert_err, assert_ok, impl_outer_origin, parameter_types};
+    use frame_support::sp_runtime::{
+        testing::Header, traits::IdentityLookup, DispatchError, Perbill,
+    };
+    use frame_support::{
+        assert_err, assert_ok, impl_outer_origin, parameter_types,
+        weights::{
+            constants::{BlockExecutionWeight, ExtrinsicBaseWeight},
+            Weight,
+        },
+    };
     use node_primitives::Moment;
     use sp_core::H256;
-    use sp_runtime::{testing::Header, traits::IdentityLookup, DispatchError};
 
     impl_outer_origin! {
         pub enum Origin for Runtime {}
@@ -105,6 +113,13 @@ mod tests {
 
     parameter_types! {
         pub const BlockHashCount: u64 = 250;
+
+        pub const MaximumBlockWeight: Weight = 2_000_000_000;
+        pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
+
+        pub MaximumExtrinsicWeight: Weight = 1_000_000_000;
+        pub const MaximumBlockLength: u32 = 1_000_000;
+
     }
 
     impl frame_system::Trait for Runtime {
@@ -113,7 +128,7 @@ mod tests {
         type BlockNumber = u64;
         type Call = ();
         type Hash = H256;
-        type Hashing = sp_runtime::traits::BlakeTwo256;
+        type Hashing = frame_support::sp_runtime::traits::BlakeTwo256;
         type AccountId = u64;
         type Lookup = IdentityLookup<Self::AccountId>;
         type Header = Header;
@@ -127,9 +142,12 @@ mod tests {
         type DbWeight = ();
         type BaseCallFilter = ();
         type SystemWeightInfo = ();
-        type BlockWeights = ();
-        type BlockLength = ();
-        type SS58Prefix = ();
+        type BlockExecutionWeight = BlockExecutionWeight;
+        type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
+        type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
+        type MaximumBlockWeight = MaximumBlockWeight;
+        type MaximumBlockLength = MaximumBlockLength;
+        type AvailableBlockRatio = AvailableBlockRatio;
     }
 
     parameter_types! {
@@ -149,7 +167,7 @@ mod tests {
         type Event = ();
     }
 
-    fn new_test_ext() -> sp_io::TestExternalities {
+    fn new_test_ext() -> frame_support::sp_io::TestExternalities {
         let storage = frame_system::GenesisConfig::default()
             .build_storage::<Runtime>()
             .unwrap();

@@ -5,7 +5,7 @@ authors = ["Airalab <research@aira.life>"]
 edition = "2018"
 license = "Apache-2.0"
 homepage = "https://robonomics.network"
-repository = "https://github.com/airalab/robonomics" 
+repository = "https://github.com/DAO-IPCI/IPCI-blockchain"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
@@ -24,12 +24,12 @@ sc-finality-grandpa-rpc = { version = "0.8.1" }
 sc-rpc = { version = "2.0.1" }
 sc-rpc-api = { version = "0.8.1" }
 
+frame-support = { version = "2.0.1" }
 sp-api = { version = "2.0.1"}
 sp-blockchain = { version = "2.0.1" }
 sp-block-builder = { version = "2.0.1" }
 sp-consensus = { version = "0.8.1" }
 sp-consensus-babe = { version = "0.8.1" }
-sp-runtime = { version = "2.0.1" }
 sp-transaction-pool = { version = "2.0.1" }
 substrate-frame-rpc-system = { version = "2.0.1" }
 pallet-transaction-payment-rpc = { version = "2.0.1" }
