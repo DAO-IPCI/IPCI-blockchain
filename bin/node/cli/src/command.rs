@@ -18,14 +18,15 @@
 
 use crate::{
     chain_spec,
-    service::{ipci, new_full_base, NewFullBase},
+    service::{ipci, new_full_base, new_partial, NewFullBase},
     Cli, Subcommand,
 };
 use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
+use sc_service::PartialComponents;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "airalab-ipcs".into()
+        "airalab-ipci".into()
     }
 
     fn impl_version() -> String {
@@ -45,11 +46,11 @@ impl SubstrateCli for Cli {
     }
 
     fn support_url() -> String {
-        "https://github.com/airalab/robonomics/issues/new".into()
+        "https://github.com/DAO-IPCI/IPCI-blockchain/issues/new".into()
     }
 
     fn copyright_start_year() -> i32 {
-        2018
+        2021
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -103,6 +104,40 @@ pub fn run() -> sc_cli::Result<()> {
                     cmd.run(chain_spec, network_config, client, network_status_sinks),
                     task_manager,
                 ))
+            })
+        }
+        Some(Subcommand::ExportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    ..
+                } = new_partial(&config)?;
+                Ok((cmd.run(client, config.database), task_manager))
+            })
+        }
+        Some(Subcommand::ExportState(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    ..
+                } = new_partial(&config)?;
+                Ok((cmd.run(client, config.chain_spec), task_manager))
+            })
+        }
+        Some(Subcommand::ImportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    import_queue,
+                    ..
+                } = new_partial(&config)?;
+                Ok((cmd.run(client, import_queue), task_manager))
             })
         }
         Some(Subcommand::PurgeChain(cmd)) => {

@@ -34,10 +34,6 @@ pub struct Cli {
     #[allow(missing_docs)]
     #[structopt(flatten)]
     pub run: RunCmd,
-
-    /// Polkadot relaychain arguments.
-    #[structopt(raw = true)]
-    pub relaychain_args: Vec<String>,
 }
 
 /// Possible subcommands of the main binary.
@@ -60,6 +56,15 @@ pub enum Subcommand {
 
     /// Build a chain specification with a light client sync state.
     BuildSyncSpec(sc_cli::BuildSyncSpecCmd),
+
+    /// Export blocks.
+    ExportBlocks(sc_cli::ExportBlocksCmd),
+
+    /// Export the state of a given block into a chain spec.
+    ExportState(sc_cli::ExportStateCmd),
+
+    /// Import blocks.
+    ImportBlocks(sc_cli::ImportBlocksCmd),
 
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),
