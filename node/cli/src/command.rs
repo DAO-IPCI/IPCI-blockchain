@@ -16,12 +16,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use crate::{
-    chain_spec,
-    service::{ipci, new_full_base, new_partial, NewFullBase},
-    Cli, Subcommand,
-};
-use sc_cli::{ChainSpec, Role, RuntimeVersion, SubstrateCli};
+use crate::service::{new_full_base, new_partial, NewFullBase};
+use crate::{chain_spec, service, Cli, Subcommand};
+use node_executor::Executor;
+use node_runtime::{Block, RuntimeApi};
+use sc_cli::{ChainSpec, Result, Role, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 
 impl SubstrateCli for Cli {
@@ -31,10 +30,6 @@ impl SubstrateCli for Cli {
 
     fn impl_version() -> String {
         env!("SUBSTRATE_CLI_IMPL_VERSION").into()
-    }
-
-    fn executable_name() -> String {
-        "ipci".into()
     }
 
     fn description() -> String {
@@ -50,7 +45,7 @@ impl SubstrateCli for Cli {
     }
 
     fn copyright_start_year() -> i32 {
-        2021
+        2018
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
@@ -64,21 +59,38 @@ impl SubstrateCli for Cli {
     }
 
     fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-        &ipci_runtime::VERSION
+        &node_runtime::VERSION
     }
 }
 
 /// Parse command line arguments into service configuration.
-pub fn run() -> sc_cli::Result<()> {
+pub fn run() -> Result<()> {
     let cli = Cli::from_args();
 
     match &cli.subcommand {
         None => {
             let runner = cli.create_runner(&cli.run)?;
+
             runner.run_node_until_exit(|config| match config.role {
-                Role::Light => ipci::new_light(config),
-                _ => ipci::new_full(config),
+                Role::Light => service::new_light(config),
+                _ => service::new_full(config),
             })
+        }
+        Some(Subcommand::Inspect(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+
+            runner.sync_run(|config| cmd.run::<Block, RuntimeApi, Executor>(config))
+        }
+        Some(Subcommand::Benchmark(cmd)) => {
+            if cfg!(feature = "runtime-benchmarks") {
+                let runner = cli.create_runner(cmd)?;
+
+                runner.sync_run(|config| cmd.run::<Block, Executor>(config))
+            } else {
+                Err("Benchmarking wasn't enabled when building the node. \
+				You can enable it with `--features runtime-benchmarks`."
+                    .into())
+            }
         }
         Some(Subcommand::Key(cmd)) => cmd.run(),
         Some(Subcommand::Sign(cmd)) => cmd.run(),
@@ -104,6 +116,18 @@ pub fn run() -> sc_cli::Result<()> {
                     cmd.run(chain_spec, network_config, client, network_status_sinks),
                     task_manager,
                 ))
+            })
+        }
+        Some(Subcommand::CheckBlock(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    import_queue,
+                    ..
+                } = new_partial(&config)?;
+                Ok((cmd.run(client, import_queue), task_manager))
             })
         }
         Some(Subcommand::ExportBlocks(cmd)) => {
@@ -144,17 +168,17 @@ pub fn run() -> sc_cli::Result<()> {
             let runner = cli.create_runner(cmd)?;
             runner.sync_run(|config| cmd.run(config.database))
         }
-        Some(Subcommand::Benchmark(subcommand)) => {
-            if cfg!(feature = "runtime-benchmarks") {
-                let runner = cli.create_runner(subcommand)?;
-                runner.sync_run(|config| {
-                    subcommand.run::<node_primitives::Block, ipci::Executor>(config)
-                })
-            } else {
-                Err("Benchmarking wasn't enabled when building the node. \
-				You can enable it with `--features runtime-benchmarks`."
-                    .into())
-            }
+        Some(Subcommand::Revert(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    backend,
+                    ..
+                } = new_partial(&config)?;
+                Ok((cmd.run(client, backend), task_manager))
+            })
         }
     }
 }

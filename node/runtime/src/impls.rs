@@ -17,9 +17,17 @@
 ///////////////////////////////////////////////////////////////////////////////
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use crate::Balances;
-use frame_support::sp_runtime::traits::Convert;
+use crate::{Authorship, Balances, NegativeImbalance};
+use frame_support::traits::{Currency, OnUnbalanced};
 use node_primitives::Balance;
+use sp_runtime::traits::Convert;
+
+pub struct Author;
+impl OnUnbalanced<NegativeImbalance> for Author {
+    fn on_nonzero_unbalanced(amount: NegativeImbalance) {
+        Balances::resolve_creating(&Authorship::author(), amount);
+    }
+}
 
 /// Struct that handles the conversion of Balance -> `u64`. This is used for staking's election
 /// calculation.

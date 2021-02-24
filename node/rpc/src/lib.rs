@@ -15,6 +15,7 @@
 //  limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 //! A collection of node-specific RPC methods.
 //!
 //! Since `substrate` core functionality makes no assumptions
@@ -33,7 +34,6 @@
 use std::sync::Arc;
 
 use node_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Index};
-use sc_client_api::AuxStore;
 use sc_consensus_babe::{Config, Epoch};
 use sc_consensus_babe_rpc::BabeRpcHandler;
 use sc_consensus_epochs::SharedEpochChanges;
@@ -111,13 +111,9 @@ pub fn create_full<C, P, SC, B>(
     deps: FullDeps<C, P, SC, B>,
 ) -> jsonrpc_core::IoHandler<sc_rpc_api::Metadata>
 where
-    C: ProvideRuntimeApi<Block>
-        + HeaderBackend<Block>
-        + AuxStore
-        + HeaderMetadata<Block, Error = BlockChainError>
-        + Sync
-        + Send
-        + 'static,
+    C: ProvideRuntimeApi<Block>,
+    C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+    C: Send + Sync + 'static,
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
     C::Api: BabeApi<Block>,
@@ -125,8 +121,7 @@ where
     P: TransactionPool + 'static,
     SC: SelectChain<Block> + 'static,
     B: sc_client_api::Backend<Block> + Send + Sync + 'static,
-    B::State:
-        sc_client_api::backend::StateBackend<frame_support::sp_runtime::traits::HashFor<Block>>,
+    B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashFor<Block>>,
 {
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
     use substrate_frame_rpc_system::{FullSystem, SystemApi};
@@ -181,19 +176,7 @@ where
             finality_provider,
         ),
     ));
-    // sync state for light client feature is available only in latest commits of
-    // substrate. the 2.0.1 release doesn't have this feature.
-
-    // io.extend_with(sc_sync_state_rpc::SyncStateRpcApi::to_delegate(
-    //     sc_sync_state_rpc::SyncStateRpcHandler::new(
-    //         chain_spec,
-    //         client,
-    //         shared_authority_set,
-    //         shared_epoch_changes,
-    //         deny_unsafe,
-    //     ),
-    // ));
-
+    // TODO add sc_sync_state_rpc
     io
 }
 

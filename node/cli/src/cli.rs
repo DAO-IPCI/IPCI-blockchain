@@ -21,16 +21,10 @@ use structopt::StructOpt;
 
 /// An overarching CLI command definition.
 #[derive(Debug, StructOpt)]
-#[structopt(settings = &[
-    structopt::clap::AppSettings::GlobalVersion,
-    structopt::clap::AppSettings::ArgsNegateSubcommands,
-    structopt::clap::AppSettings::SubcommandsNegateReqs,
-])]
 pub struct Cli {
     /// Possible subcommand with parameters.
     #[structopt(subcommand)]
     pub subcommand: Option<Subcommand>,
-
     #[allow(missing_docs)]
     #[structopt(flatten)]
     pub run: RunCmd,
@@ -41,6 +35,17 @@ pub struct Cli {
 pub enum Subcommand {
     /// Key management cli utilities
     Key(KeySubcommand),
+
+    /// The custom inspect subcommmand for decoding blocks and extrinsics.
+    #[structopt(
+        name = "inspect",
+        about = "Decode given block or extrinsic using current native runtime."
+    )]
+    Inspect(node_inspect::cli::InspectCmd),
+
+    /// The custom benchmark subcommmand benchmarking runtime pallets.
+    #[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
+    Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
     /// Verify a signature for a message, provided on STDIN, with a given (public or secret) key.
     Verify(VerifyCmd),
@@ -57,6 +62,9 @@ pub enum Subcommand {
     /// Build a chain specification with a light client sync state.
     BuildSyncSpec(sc_cli::BuildSyncSpecCmd),
 
+    /// Validate blocks.
+    CheckBlock(sc_cli::CheckBlockCmd),
+
     /// Export blocks.
     ExportBlocks(sc_cli::ExportBlocksCmd),
 
@@ -69,7 +77,6 @@ pub enum Subcommand {
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),
 
-    /// Benchmarking runtime pallets.
-    #[structopt(name = "benchmark", about = "Benchmark runtime pallets.")]
-    Benchmark(frame_benchmarking_cli::BenchmarkCmd),
+    /// Revert the chain to a previous state.
+    Revert(sc_cli::RevertCmd),
 }

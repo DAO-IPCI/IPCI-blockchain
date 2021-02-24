@@ -16,7 +16,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-//! IPCI node executable.
+//! Substrate Node CLI
+
 #![warn(missing_docs)]
 
 fn main() -> sc_cli::Result<()> {

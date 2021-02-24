@@ -1,134 +1,146 @@
 [package]
-name = "ipci-runtime"
+name = "node-runtime"
 version = "0.23.1"
-authors = ["Airalab <research@aira.life>"]
+authors = ["Dmitry Dulesov <dmitry.dulesov@gmail.com>", "Parity Technologies <admin@parity.io>"]
 edition = "2018"
 build = "build.rs"
-repository = "https://github.com/DAO-IPCI/IPCI-blockchain"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/CurioTeam/curio-parachain-node"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-# third-party dependencies
-serde = { version = "1.0.106", features = ["derive"], optional = true }
-codec = { package = "parity-scale-codec", version = "1.3.6", default-features = false, features = ["derive"] }
-lazy_static = { version = "1.4", optional = true }
-hex-literal = "0.2"
-smallvec = "1.4.1"
 
+# third-party dependencies
+codec = { package = "parity-scale-codec", version = "1.3.4", default-features = false, features = ["derive"] }
+integer-sqrt = { version = "0.1.2" }
+serde = { version = "1.0.102", optional = true }
+static_assertions = "1.1.0"
+hex-literal = { version = "0.3.1", optional = true }
+smallvec = { version = "1.4.1" }
+
+#local dependencies
+pallet-robonomics-datalog = { version = "0.2.0", path = "../../pallets/datalog", default-features = false }
 # primitives
-node-primitives = { path = "../primitives", default-features = false }
-sp-core = { version = "2.0.1", default-features = false }
-sp-staking = { version = "2.0.1", default-features = false }
-sp-consensus-babe = { version = "0.8.1", default-features = false }
-sp-offchain = { version = "2.0.1", default-features = false }
 sp-authority-discovery = { version = "2.0.1", default-features = false }
-sp-api = { version = "2.0.1", default-features = false }
+sp-consensus-babe = { version = "0.8.1", default-features = false }
+sp-block-builder = { default-features = false, version = "2.0.1"}
 sp-inherents = { version = "2.0.1", default-features = false }
-sp-block-builder = { version = "2.0.1", default-features = false }
+node-primitives = { version = "0.23.1", default-features = false, path="../primitives" }
+sp-offchain = { version = "2.0.1", default-features = false }
+sp-core = { version = "2.0.1", default-features = false }
+sp-std = { version = "2.0.1", default-features = false }
+sp-api = { version = "2.0.1", default-features = false }
+sp-runtime = { version = "2.0.1", default-features = false}
+sp-staking = { version = "2.0.1", default-features = false }
+sp-keyring = { version = "2.0.1", optional = true }
+sp-session = { version = "2.0.1", default-features = false }
 sp-transaction-pool = { version = "2.0.1", default-features = false }
 sp-version = { version = "2.0.1", default-features = false }
-sp-session = { version = "2.0.1", default-features = false }
 
 # frame dependencies
-pallet-authorship = { version = "2.0.1", default-features = false }
+frame-executive = { version = "2.0.1", default-features = false }
+frame-benchmarking = { version = "2.0.1", default-features = false, optional = true }
+frame-support = { version = "2.0.1", default-features = false }
+frame-system = { version = "2.0.1", default-features = false }
+frame-system-benchmarking = { version = "2.0.1", default-features = false, optional = true }
+frame-system-rpc-runtime-api = { version = "2.0.1", default-features = false }
 pallet-authority-discovery = { version = "2.0.1", default-features = false }
+pallet-authorship = { version = "2.0.1", default-features = false }
 pallet-babe = { version = "2.0.1", default-features = false }
 pallet-balances = { version = "2.0.1", default-features = false }
-frame-executive = { version = "2.0.1", default-features = false }
+pallet-finality-tracker = { version = "2.0.1", default-features = false }
 pallet-grandpa = { version = "2.0.1", default-features = false }
 pallet-im-online = { version = "2.0.1", default-features = false }
 pallet-indices = { version = "2.0.1", default-features = false }
 pallet-identity = { version = "2.0.1", default-features = false }
+pallet-membership = { version = "2.0.1", default-features = false }
 pallet-multisig = { version = "2.0.1", default-features = false }
 pallet-offences = { version = "2.0.1", default-features = false }
 pallet-offences-benchmarking = { version = "2.0.1", default-features = false, optional = true }
 pallet-randomness-collective-flip = { version = "2.0.1", default-features = false }
-pallet-session = { version = "2.0.1", default-features = false }
+pallet-session = { version = "2.0.1", features = ["historical"], default-features = false }
 pallet-session-benchmarking = { version = "2.0.1", default-features = false, optional = true }
 pallet-staking = { version = "2.0.1", default-features = false }
 pallet-staking-reward-curve = { version = "2.0.1", default-features = false }
 pallet-sudo = { version = "2.0.1", default-features = false }
-frame-support = { version = "2.0.1", default-features = false }
-sp-runtime = { version = "2.0.1", default-features = false }
-frame-benchmarking = { version = "2.0.1", default-features = false, optional = true }
-frame-system = { version = "2.0.1", default-features = false }
-frame-system-rpc-runtime-api = { version = "2.0.1", default-features = false }
-frame-system-benchmarking = { version = "2.0.1", default-features = false, optional = true }
-pallet-utility = { version = "2.0.1", default-features = false }
 pallet-timestamp = { version = "2.0.1", default-features = false }
+pallet-utility = { version = "2.0.1", default-features = false }
 pallet-transaction-payment = { version = "2.0.1", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { version = "2.0.1", default-features = false }
-pallet-finality-tracker = { version = "2.0.1", default-features = false }
-pallet-robonomics-datalog = { path="../../pallets/datalog", default-features = false }
-
-# extra pallets
-pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "stable", version = "0.0.3", default-features = false }
-pallet-evercity-transfer = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "stable", version = "0.0.3", default-features = false }
 
 [build-dependencies]
-substrate-wasm-builder = "3.0.0"
+substrate-wasm-builder = { version = "3.0.0" }
+
+[dev-dependencies]
+sp-io = { version = "2.0.1" }
 
 [features]
 default = ["std"]
+with-tracing = [ "frame-executive/with-tracing" ]
 std = [
-    "codec/std",
-    "lazy_static",
-    "sp-authority-discovery/std",
-    "pallet-authority-discovery/std",
-    "pallet-authorship/std",
-    "sp-consensus-babe/std",
-    "pallet-babe/std",
-    "pallet-balances/std",
-    "pallet-finality-tracker/std",
-    "sp-api/std",
-    "frame-executive/std",
-    "pallet-grandpa/std",
-    "pallet-im-online/std",
-    "pallet-indices/std",
-    "pallet-identity/std",
-    "pallet-multisig/std",
-    "node-primitives/std",
-    "sp-offchain/std",
-    "pallet-offences/std",
-    "sp-core/std",
-    "pallet-randomness-collective-flip/std",
-    "serde",
-    "pallet-session/std",
-    "sp-staking/std",
-    "pallet-staking/std",
-    "sp-session/std",
-    "pallet-sudo/std",
-    "frame-support/std",
-    "sp-runtime/std",
-    "frame-benchmarking/std",
-    "frame-system/std",
-    "frame-system-rpc-runtime-api/std",
-    "pallet-utility/std",
-    "pallet-timestamp/std",
-    "pallet-transaction-payment/std",
-    "pallet-transaction-payment-rpc-runtime-api/std",
-    "sp-version/std",
-    "sp-block-builder/std",
-    "sp-transaction-pool/std",
-    "sp-inherents/std",
-    "pallet-robonomics-datalog/std",
-    "pallet-evercity/std",
-    "pallet-evercity-transfer/std",
+	"sp-authority-discovery/std",
+	"pallet-authority-discovery/std",
+	"pallet-authorship/std",
+	"sp-consensus-babe/std",
+	"pallet-babe/std",
+	"pallet-balances/std",
+	"sp-block-builder/std",
+	"codec/std",
+	"frame-executive/std",
+	"pallet-finality-tracker/std",
+	"pallet-grandpa/std",
+	"pallet-im-online/std",
+	"pallet-indices/std",
+	"sp-inherents/std",
+	"pallet-multisig/std",
+	"pallet-identity/std",
+	"node-primitives/std",
+	"sp-offchain/std",
+	"pallet-offences/std",
+	"sp-core/std",
+	"pallet-randomness-collective-flip/std",
+	"sp-std/std",
+	"serde",
+	"pallet-session/std",
+	"sp-api/std",
+	"sp-runtime/std",
+	"sp-staking/std",
+	"pallet-staking/std",
+	"sp-keyring",
+	"sp-session/std",
+	"pallet-sudo/std",
+	"frame-support/std",
+	"frame-benchmarking/std",
+	"frame-system-rpc-runtime-api/std",
+	"frame-system/std",
+	"pallet-timestamp/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-transaction-payment/std",
+	"sp-transaction-pool/std",
+	"pallet-utility/std",
+	"sp-version/std",
+	"pallet-robonomics-datalog/std",
 ]
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "frame-support/runtime-benchmarks",
-    "frame-system/runtime-benchmarks",
-    "pallet-babe/runtime-benchmarks",
-    "pallet-balances/runtime-benchmarks",
-    "pallet-grandpa/runtime-benchmarks",
-    "pallet-identity/runtime-benchmarks",
-    "pallet-im-online/runtime-benchmarks",
-    "pallet-indices/runtime-benchmarks",
-    "pallet-multisig/runtime-benchmarks",
-    "pallet-staking/runtime-benchmarks",
-    "pallet-timestamp/runtime-benchmarks",
-    "pallet-utility/runtime-benchmarks",
-    "pallet-offences-benchmarking",
-    "pallet-session-benchmarking",
-    "frame-system-benchmarking",
+	"frame-benchmarking",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-im-online/runtime-benchmarks",
+	"pallet-indices/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-staking/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
+	"pallet-offences-benchmarking",
+	"pallet-session-benchmarking",
+	"frame-system-benchmarking",
+	"hex-literal",
 ]

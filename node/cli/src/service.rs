@@ -1,34 +1,31 @@
-///////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright 2018-2020 Airalab <research@aira.life>
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-//
-///////////////////////////////////////////////////////////////////////////////
-//! Service and ServiceFactory implementation. Specialized wrapper over Substrate service.
+// This file is part of Substrate.
+
+// Copyright (C) 2018-2020 Parity Technologies (UK) Ltd.
+// SPDX-License-Identifier: GPL-3.0-or-later WITH Classpath-exception-2.0
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![warn(unused_extern_crates)]
 #![allow(clippy::type_complexity)]
 //! Service implementation. Specialized wrapper over substrate service.
 
 use futures::prelude::*;
-use sc_finality_grandpa::{self, FinalityProofProvider as GrandpaFinalityProofProvider};
-
-use ipci_runtime::RuntimeApi;
+use grandpa::{self, FinalityProofProvider as GrandpaFinalityProofProvider};
+use node_executor::Executor;
 use node_primitives::Block;
+use node_runtime::RuntimeApi;
 use sc_client_api::{ExecutorProvider, RemoteBackend};
-use sc_executor::native_executor_instance;
-pub use sc_executor::NativeExecutor;
 use sc_network::{Event, NetworkService};
 use sc_service::{
     config::{Configuration, Role},
@@ -44,17 +41,8 @@ type FullClient = sc_service::TFullClient<Block, RuntimeApi, Executor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 type FullGrandpaBlockImport =
-    sc_finality_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
+    grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
 type LightClient = sc_service::TLightClient<Block, RuntimeApi, Executor>;
-
-// Declare an instance of the native executor named `Executor`. Include the wasm binary as the
-// equivalent wasm code.
-native_executor_instance!(
-    pub Executor,
-    ipci_runtime::api::dispatch,
-    ipci_runtime::native_version,
-    frame_benchmarking::benchmarking::HostFunctions,
-);
 
 pub fn new_partial(
     config: &Configuration,
@@ -69,11 +57,11 @@ pub fn new_partial(
             impl Fn(node_rpc::DenyUnsafe, sc_rpc::SubscriptionTaskExecutor) -> node_rpc::IoHandler,
             (
                 sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
-                sc_finality_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
+                grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
                 sc_consensus_babe::BabeLink<Block>,
             ),
             (
-                sc_finality_grandpa::SharedVoterState,
+                grandpa::SharedVoterState,
                 Arc<GrandpaFinalityProofProvider<FullBackend, Block>>,
             ),
         ),
@@ -93,7 +81,7 @@ pub fn new_partial(
         client.clone(),
     );
 
-    let (grandpa_block_import, grandpa_link) = sc_finality_grandpa::block_import(
+    let (grandpa_block_import, grandpa_link) = grandpa::block_import(
         client.clone(),
         &(client.clone() as Arc<_>),
         select_chain.clone(),
@@ -128,7 +116,7 @@ pub fn new_partial(
 
         let justification_stream = grandpa_link.justification_stream();
         let shared_authority_set = grandpa_link.shared_authority_set().clone();
-        let shared_voter_state = sc_finality_grandpa::SharedVoterState::empty();
+        let shared_voter_state = grandpa::SharedVoterState::empty();
         let finality_proof_provider =
             GrandpaFinalityProofProvider::new_for_service(backend.clone(), client.clone());
 
@@ -335,7 +323,7 @@ pub fn new_full_base(
         None
     };
 
-    let config = sc_finality_grandpa::Config {
+    let config = grandpa::Config {
         // FIXME #1578 make this available through chainspec
         gossip_duration: std::time::Duration::from_millis(333),
         justification_period: 512,
@@ -352,29 +340,24 @@ pub fn new_full_base(
         // and vote data availability than the observer. The observer has not
         // been tested extensively yet and having most nodes in a network run it
         // could lead to finality stalls.
-        let grandpa_config = sc_finality_grandpa::GrandpaParams {
+        let grandpa_config = grandpa::GrandpaParams {
             config,
             link: grandpa_link,
             network: network.clone(),
             inherent_data_providers: inherent_data_providers.clone(),
             telemetry_on_connect: Some(telemetry_connection_sinks.on_connect_stream()),
-            voting_rule: sc_finality_grandpa::VotingRulesBuilder::default().build(),
+            voting_rule: grandpa::VotingRulesBuilder::default().build(),
             prometheus_registry,
             shared_voter_state,
         };
 
         // the GRANDPA voter task is considered infallible, i.e.
         // if it fails we take down the service with it.
-        task_manager.spawn_essential_handle().spawn_blocking(
-            "grandpa-voter",
-            sc_finality_grandpa::run_grandpa_voter(grandpa_config)?,
-        );
+        task_manager
+            .spawn_essential_handle()
+            .spawn_blocking("grandpa-voter", grandpa::run_grandpa_voter(grandpa_config)?);
     } else {
-        sc_finality_grandpa::setup_disabled_grandpa(
-            client.clone(),
-            &inherent_data_providers,
-            network.clone(),
-        )?;
+        grandpa::setup_disabled_grandpa(client.clone(), &inherent_data_providers, network.clone())?;
     }
 
     network_starter.start_network();
@@ -386,6 +369,11 @@ pub fn new_full_base(
         network_status_sinks,
         transaction_pool,
     })
+}
+
+/// Builds a new service for a full client.
+pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
+    new_full_base(config, |_, _| ()).map(|NewFullBase { task_manager, .. }| task_manager)
 }
 
 pub fn new_light_base(
@@ -415,7 +403,7 @@ pub fn new_light_base(
         on_demand.clone(),
     ));
 
-    let grandpa_block_import = sc_finality_grandpa::light_block_import(
+    let grandpa_block_import = grandpa::light_block_import(
         client.clone(),
         backend.clone(),
         &(client.clone() as Arc<_>),
@@ -508,33 +496,7 @@ pub fn new_light_base(
     ))
 }
 
-/// IPCI chain services.
-pub mod ipci {
-    use sc_service::{config::Configuration, error::Result, TaskManager};
-
-    #[cfg(feature = "frame-benchmarking")]
-    sc_executor::native_executor_instance!(
-        pub Executor,
-        ipci_runtime::api::dispatch,
-        ipci_runtime::native_version,
-        frame_benchmarking::benchmarking::HostFunctions,
-    );
-
-    #[cfg(not(feature = "frame-benchmarking"))]
-    sc_executor::native_executor_instance!(
-        pub Executor,
-        ipci_runtime::api::dispatch,
-        ipci_runtime::native_version,
-    );
-
-    /// Create a new IPCI service for a full node.
-    pub fn new_full(config: Configuration) -> Result<TaskManager> {
-        super::new_full_base(config, |_, _| ())
-            .map(|super::NewFullBase { task_manager, .. }| task_manager)
-    }
-
-    /// Create a new IPCI service for a light client.
-    pub fn new_light(config: Configuration) -> Result<TaskManager> {
-        super::new_light_base(config).map(|(task_manager, _, _, _, _)| task_manager)
-    }
+/// Builds a new service for a light client.
+pub fn new_light(config: Configuration) -> Result<TaskManager, ServiceError> {
+    new_light_base(config).map(|(task_manager, _, _, _, _)| task_manager)
 }

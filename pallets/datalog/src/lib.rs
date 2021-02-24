@@ -26,6 +26,7 @@ use frame_system::ensure_signed;
 
 /// Type synonym for timestamp data type.
 pub type MomentOf<T> = <<T as Trait>::Time as Time>::Moment;
+pub type AccountIdOf<T> = <T as frame_system::Trait>::AccountId;
 
 /// Datalog module main trait.
 pub trait Trait: frame_system::Trait {

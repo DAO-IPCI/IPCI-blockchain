@@ -15,29 +15,35 @@
 //  limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
-//! Chain specification and utils.
 
-use ipci_runtime::{
-    wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, GenesisConfig,
-    GrandpaConfig, ImOnlineConfig, IndicesConfig, SessionConfig, SessionKeys, StakerStatus,
-    StakingConfig, SudoConfig, SystemConfig,
+//! Substrate chain configurations.
+
+use grandpa_primitives::AuthorityId as GrandpaId;
+use node_runtime::constants::currency::*;
+use node_runtime::Block;
+use node_runtime::{
+    wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, GrandpaConfig,
+    ImOnlineConfig, IndicesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
+    SudoConfig, SystemConfig,
 };
-use node_primitives::{AccountId, Balance, Block, Signature};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
-use sc_service::ChainType;
+use sc_service::{ChainType, Properties};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
-use sp_finality_grandpa::AuthorityId as GrandpaId;
-use sp_runtime::traits::{IdentifyAccount, Verify};
-use sp_runtime::Perbill;
+use sp_runtime::{
+    traits::{IdentifyAccount, Verify},
+    Perbill,
+};
 
-#[allow(dead_code)]
-const DAO_IPCI_ID: &str = "ipci";
+pub use node_primitives::{AccountId, Balance, Signature};
+pub use node_runtime::GenesisConfig;
 
 type AccountPublic = <Signature as Verify>::Signer;
+
+// const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
 /// Node `ChainSpec` extensions.
 ///
@@ -55,7 +61,6 @@ pub struct Extensions {
 /// Specialized `ChainSpec`.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
 
-/// Helper function to create session key structure
 fn session_keys(
     grandpa: GrandpaId,
     babe: BabeId,
@@ -70,8 +75,24 @@ fn session_keys(
     }
 }
 
+/// declare Token symbol and decimals
+pub fn properties() -> Properties {
+    let mut properties = Properties::new();
+
+    properties.insert("ss58Format".into(), 32.into());
+    properties.insert("tokenDecimals".into(), 12.into());
+    properties.insert("tokenSymbol".into(), "MITO".into());
+
+    properties
+}
+
+/// IPCI blockchain config.
+pub fn ipci_config() -> ChainSpec {
+    ChainSpec::from_json_bytes(&include_bytes!("../res/ipci.json")[..]).unwrap()
+}
+
 /// Helper function to generate a crypto pair from seed
-fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
     TPublic::Pair::from_string(&format!("//{}", seed), None)
         .expect("static values are valid; qed")
         .public()
@@ -106,7 +127,8 @@ pub fn authority_keys_from_seed(
     )
 }
 
-fn development_genesis(
+/// Helper function to create GenesisConfig for testing
+pub fn testnet_genesis(
     initial_authorities: Vec<(
         AccountId,
         AccountId,
@@ -115,64 +137,44 @@ fn development_genesis(
         ImOnlineId,
         AuthorityDiscoveryId,
     )>,
+    root_key: AccountId,
     endowed_accounts: Option<Vec<AccountId>>,
-    sudo_key: AccountId,
+    _enable_println: bool,
 ) -> GenesisConfig {
-    const ENDOWMENT: Balance = 1_000_000_000_000_000_000;
+    let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Charlie"),
+            get_account_id_from_seed::<sr25519::Public>("Dave"),
+            get_account_id_from_seed::<sr25519::Public>("Eve"),
+            get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
+        ]
+    });
 
-    let endowed_accounts: Vec<(AccountId, Balance)> = endowed_accounts
-        .unwrap_or_else(|| {
-            vec![
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
-                get_account_id_from_seed::<sr25519::Public>("Bob"),
-                get_account_id_from_seed::<sr25519::Public>("Charlie"),
-                get_account_id_from_seed::<sr25519::Public>("Dave"),
-                get_account_id_from_seed::<sr25519::Public>("Eve"),
-                get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-                get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-                get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-                get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-                get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-                get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-                get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-            ]
-        })
-        .iter()
-        .cloned()
-        .map(|acc| (acc, ENDOWMENT))
-        .collect();
-
-    mk_genesis(
-        initial_authorities,
-        endowed_accounts,
-        sudo_key,
-        wasm_binary_unwrap().to_vec(),
-    )
-}
-
-/// Helper function to create GenesisConfig
-fn mk_genesis(
-    initial_authorities: Vec<(
-        AccountId,
-        AccountId,
-        GrandpaId,
-        BabeId,
-        ImOnlineId,
-        AuthorityDiscoveryId,
-    )>,
-    balances: Vec<(AccountId, Balance)>,
-    sudo_key: AccountId,
-    code: Vec<u8>,
-) -> GenesisConfig {
-    const STASH: Balance = 1_000_000_000_000;
+    const ENDOWMENT: Balance = 10_000_000 * MITO;
+    const STAKE: Balance = 500_000 * MITO;
 
     GenesisConfig {
         frame_system: Some(SystemConfig {
-            code,
+            code: wasm_binary_unwrap().to_vec(),
             changes_trie_config: Default::default(),
         }),
         pallet_indices: Some(IndicesConfig { indices: vec![] }),
-        pallet_balances: Some(BalancesConfig { balances }),
+        pallet_balances: Some(BalancesConfig {
+            balances: endowed_accounts
+                .iter()
+                .cloned()
+                .map(|k| (k, ENDOWMENT))
+                .chain(initial_authorities.iter().map(|x| (x.0.clone(), STAKE)))
+                .collect(),
+        }),
         pallet_babe: Some(BabeConfig {
             authorities: vec![],
         }),
@@ -196,37 +198,35 @@ fn mk_genesis(
             minimum_validator_count: initial_authorities.len() as u32,
             stakers: initial_authorities
                 .iter()
-                .map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
+                .map(|x| (x.0.clone(), x.1.clone(), STAKE, StakerStatus::Validator))
                 .collect(),
             invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
             slash_reward_fraction: Perbill::from_percent(10),
             ..Default::default()
         }),
+        pallet_sudo: Some(SudoConfig { key: root_key }),
+
         pallet_im_online: Some(ImOnlineConfig { keys: vec![] }),
         pallet_authority_discovery: Some(AuthorityDiscoveryConfig { keys: vec![] }),
-        pallet_sudo: Some(SudoConfig { key: sudo_key }),
     }
 }
 
-/// IPCI blockchain config.
-pub fn ipci_config() -> ChainSpec {
-    ChainSpec::from_json_bytes(&include_bytes!("../res/ipci.json")[..]).unwrap()
+fn development_config_genesis() -> GenesisConfig {
+    testnet_genesis(
+        vec![authority_keys_from_seed("Alice")],
+        get_account_id_from_seed::<sr25519::Public>("Alice"),
+        None,
+        true,
+    )
 }
 
 /// Development config (single validator Alice)
 pub fn development_config() -> ChainSpec {
-    let genesis = || {
-        development_genesis(
-            vec![authority_keys_from_seed("Alice")],
-            None,
-            get_account_id_from_seed::<sr25519::Public>("Alice"),
-        )
-    };
     ChainSpec::from_genesis(
         "Development",
         "dev",
         ChainType::Development,
-        genesis,
+        development_config_genesis,
         vec![],
         None,
         None,
