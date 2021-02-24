@@ -1,10 +1,10 @@
 [workspace]
-default-members = [ "bin/node/cli" ]
+default-members = [ "node/cli" ]
 members = [
-    "bin/node/cli",
-    "bin/node/ipci-runtime",
-    "bin/node/rpc",
-    "bin/node/primitives",
+    "node/cli",
+    "node/runtime",
+    "node/rpc",
+    "node/primitives",
     "pallets/datalog",
 ]
 

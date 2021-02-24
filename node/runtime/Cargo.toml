@@ -58,7 +58,7 @@ pallet-timestamp = { version = "2.0.1", default-features = false }
 pallet-transaction-payment = { version = "2.0.1", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { version = "2.0.1", default-features = false }
 pallet-finality-tracker = { version = "2.0.1", default-features = false }
-pallet-robonomics-datalog = { path="../../../pallets/datalog", default-features = false }
+pallet-robonomics-datalog = { path="../../pallets/datalog", default-features = false }
 
 # extra pallets
 pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "stable", version = "0.0.3", default-features = false }
