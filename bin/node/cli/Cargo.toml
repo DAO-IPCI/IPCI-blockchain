@@ -1,6 +1,6 @@
 [package]
 name = "node-cli"
-version = "0.23.1"
+version = "0.23.2"
 authors = ["Airalab <research@aira.life>"]
 description = "IPCI node implementation in Rust & Substrate."
 build = "build.rs"
@@ -92,6 +92,9 @@ ipci-runtime = { path = "../ipci-runtime" }
 sc-cli = { version = "0.8.1", optional = true }
 frame-benchmarking-cli = { version = "2.0.1", optional = true }
 
+jemallocator = { version = "0.3.0",  optional = true }
+tcmalloc = { version = "0.3.0",  optional = true }
+
 [build-dependencies]
 ipci-runtime = { path = "../ipci-runtime" }
 sc-cli = { version = "0.8.1", optional = true }
@@ -100,10 +103,17 @@ substrate-build-script-utils = { version = "2.0.1" }
 vergen = { version = "3.1.0", optional = true }
 structopt = { version = "0.3.8", optional = true }
 
+
 [features]
 default = [
     "cli",
     "wasmtime",
+]
+jem = [
+    "jemallocator",
+]
+tcm = [
+    "tcmalloc",
 ]
 
 ## Enable Wasmtime virtual machine.

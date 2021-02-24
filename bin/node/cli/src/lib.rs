@@ -17,6 +17,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 //! Console line interface.
 #![warn(unused_extern_crates)]
+#[cfg(all(feature = "std",feature = "jem"))]
+#[global_allocator]
+static ALLOCATOR: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(all(feature = "std",feature = "tcm"))]
+#[global_allocator]
+static ALLOCATOR: tcmalloc::TCMalloc = tcmalloc::TCMalloc;
+
 pub mod chain_spec;
 
 #[macro_use]
