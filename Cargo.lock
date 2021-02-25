@@ -4354,7 +4354,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-robonomics-datalog"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "base58",
  "frame-support",

@@ -526,10 +526,18 @@ impl pallet_finality_tracker::Trait for Runtime {
     type ReportLatency = ReportLatency;
 }
 
+parameter_types! {
+    pub const DatalogWindowSize: u64 = 128;
+    pub const DatalogMaximumMessageSize: usize = 512;
+}
+
 impl pallet_robonomics_datalog::Trait for Runtime {
     type Time = Timestamp;
     type Record = Vec<u8>;
     type Event = Event;
+    type WindowSize = DatalogWindowSize;
+    type MaximumMessageSize = DatalogMaximumMessageSize;
+    type WeightInfo = ();
 }
 
 construct_runtime!(
