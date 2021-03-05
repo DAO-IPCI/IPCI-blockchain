@@ -1,19 +1,19 @@
 [package]
 name = "pallet-robonomics-datalog"
 description = "Robonomics Network data logging Substrate runtime module"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Airalab <research@aira.life>"]
 edition = "2018"
 
 [dependencies]
-codec = { package = "parity-scale-codec", version = "1.3.6", default-features = false, features = ["derive"] }
-frame-system = { version="2.0.1", default-features = false }
-frame-support = { version="2.0.1", default-features = false }
-pallet-timestamp = { version="2.0.1", default-features = false }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false, features = ["derive"] }
+frame-system = { version="3.0.0", default-features = false }
+frame-support = { version="3.0.0", default-features = false }
+pallet-timestamp = { version="3.0.0", default-features = false }
 
 [dev-dependencies]
 base58 = "0.1.0"
-sp-core = { version="2.0.1" }
+sp-core = { version="3.0.0" }
 node-primitives = { path = "../../node/primitives" }
 
 [features]

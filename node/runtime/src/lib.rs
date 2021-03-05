@@ -515,16 +515,16 @@ impl pallet_grandpa::Trait for Runtime {
     type WeightInfo = ();
 }
 
-parameter_types! {
-    pub const WindowSize: BlockNumber = 101;
-    pub const ReportLatency: BlockNumber = 1000;
-}
-
-impl pallet_finality_tracker::Trait for Runtime {
-    type OnFinalizationStalled = ();
-    type WindowSize = WindowSize;
-    type ReportLatency = ReportLatency;
-}
+// parameter_types! {
+//     pub const WindowSize: BlockNumber = 101;
+//     pub const ReportLatency: BlockNumber = 1000;
+// }
+//
+// impl pallet_finality_tracker::Trait for Runtime {
+//     type OnFinalizationStalled = ();
+//     type WindowSize = WindowSize;
+//     type ReportLatency = ReportLatency;
+// }
 
 parameter_types! {
     pub const DatalogWindowSize: u64 = 128;

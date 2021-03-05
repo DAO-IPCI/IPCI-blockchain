@@ -30,32 +30,32 @@ pub use default_weight::WeightInfo;
 mod default_weight;
 
 /// Type synonym for timestamp data type.
-pub type MomentOf<T> = <<T as Trait>::Time as Time>::Moment;
+pub type MomentOf<T> = <<T as Config>::Time as Time>::Moment;
 /// system::AccountId type
-pub type AccountIdOf<T> = <T as frame_system::Trait>::AccountId;
+pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 
 #[cfg_attr(feature = "std", derive(Debug, PartialEq))]
 #[derive(Encode, Decode)]
-pub struct RingBufferItem<T: Trait>(
-    #[codec(compact)] <<T as Trait>::Time as Time>::Moment,
-    <T as Trait>::Record,
+pub struct RingBufferItem<T: Config>(
+    #[codec(compact)] <<T as Config>::Time as Time>::Moment,
+    <T as Config>::Record,
 );
 
-impl<T: Trait> Default for RingBufferItem<T> {
+impl<T: Config> Default for RingBufferItem<T> {
     fn default() -> Self {
         Self(Default::default(), Default::default())
     }
 }
 
 #[cfg(test)]
-impl<T: Trait> RingBufferItem<T> {
-    fn new(now: <<T as Trait>::Time as Time>::Moment, record: <T as Trait>::Record) -> Self {
+impl<T: Config> RingBufferItem<T> {
+    fn new(now: <<T as Config>::Time as Time>::Moment, record: <T as Config>::Record) -> Self {
         Self(now, record)
     }
 }
 
-impl<T: Trait> RingBufferItem<T> {
-    fn into(self) -> (<<T as Trait>::Time as Time>::Moment, <T as Trait>::Record) {
+impl<T: Config> RingBufferItem<T> {
+    fn into(self) -> (<<T as Config>::Time as Time>::Moment, <T as Config>::Record) {
         (self.0, self.1)
     }
 }
@@ -111,13 +111,13 @@ impl Iterator for RingBufferIterator<'_> {
 }
 
 /// Datalog module main trait.
-pub trait Trait: frame_system::Trait {
+pub trait Config: frame_system::Config {
     /// Timestamp source.
     type Time: Time;
     /// Datalog record data type.
     type Record: Codec + EncodeLike + Member + Default;
     /// The overarching event type.
-    type Event: From<Event<Self>> + Into<<Self as frame_system::Trait>::Event>;
+    type Event: From<Event<Self>> + Into<<Self as frame_system::Config>::Event>;
     /// log window
     type WindowSize: Get<u64>;
     /// maximum record length
@@ -126,7 +126,7 @@ pub trait Trait: frame_system::Trait {
     type WeightInfo: WeightInfo;
 }
 decl_error! {
-    pub enum Error for Module<T: Trait> {
+    pub enum Error for Module<T: Config> {
         /// Potentially dangerous action
         RecordTooBig,
     }
@@ -134,9 +134,9 @@ decl_error! {
 
 decl_event! {
     pub enum Event<T>
-    where AccountId = <T as frame_system::Trait>::AccountId,
+    where AccountId = <T as frame_system::Config>::AccountId,
           Moment = MomentOf<T>,
-          Record = <T as Trait>::Record,
+          Record = <T as Config>::Record,
     {
         /// New data added.
         NewRecord(AccountId, Moment, Record),
@@ -148,7 +148,7 @@ decl_event! {
 }
 
 decl_storage! {
-    trait Store for Module<T: Trait> as Datalog {
+    trait Store for Module<T: Config> as Datalog {
         /// Time tagged data of given account (old values).
         Datalog get(fn datalog): map hasher(blake2_128_concat)
                                  T::AccountId => Vec<(MomentOf<T>, T::Record)>;
@@ -162,11 +162,11 @@ decl_storage! {
 }
 
 decl_module! {
-    pub struct Module<T: Trait> for enum Call where origin: T::Origin {
+    pub struct Module<T: Config> for enum Call where origin: T::Origin {
         fn deposit_event() = default;
 
         /// Store new data into blockchain.
-        #[weight = <T as Trait>::WeightInfo::record()]
+        #[weight = <T as Config>::WeightInfo::record()]
         fn record(origin, record: T::Record) {
             ensure!(record.size_hint() <= T::MaximumMessageSize::get(), Error::<T>::RecordTooBig );
             let sender = ensure_signed(origin)?;
@@ -188,7 +188,7 @@ decl_module! {
         }
 
         /// Clear account`s datalog.
-        #[weight = <T as Trait>::WeightInfo::erase(T::WindowSize::get())]
+        #[weight = <T as Config>::WeightInfo::erase(T::WindowSize::get())]
         fn erase(origin) {
             let sender = ensure_signed(origin)?;
             Datalog::<T>::remove(&sender);
@@ -204,7 +204,7 @@ decl_module! {
     }
 }
 
-impl<T: Trait> Module<T> {
+impl<T: Config> Module<T> {
     pub fn data(account: &T::AccountId) -> Vec<RingBufferItem<T>> {
         let mut idx = DatalogIndex::<T>::get(&account);
         let window_size = T::WindowSize::get();
@@ -254,7 +254,7 @@ mod tests {
         pub const MaximumBlockLength: u32 = 1_000_000;
     }
 
-    impl frame_system::Trait for Runtime {
+    impl frame_system::Config for Runtime {
         type Origin = Origin;
         type Index = u64;
         type BlockNumber = u64;
@@ -286,7 +286,7 @@ mod tests {
         pub const MinimumPeriod: Moment = 5;
     }
 
-    impl pallet_timestamp::Trait for Runtime {
+    impl pallet_timestamp::Config for Runtime {
         type Moment = Moment;
         type OnTimestampSet = ();
         type MinimumPeriod = ();
@@ -299,7 +299,7 @@ mod tests {
         pub const MaximumMessageSize: usize = 512;
     }
 
-    impl Trait for Runtime {
+    impl Config for Runtime {
         type Time = Timestamp;
         type Record = Vec<u8>;
         type Event = ();
