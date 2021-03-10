@@ -6,6 +6,7 @@ members = [
     "node/inspect",
     "node/rpc",
     "node/primitives",
+    "client/*",
     "pallets/*",
 ]
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates

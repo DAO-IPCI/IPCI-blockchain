@@ -15,9 +15,10 @@
 //  limitations under the License.
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 //! Simple Robonomics datalog runtime module. This can be compiled with `#[no_std]`, ready for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
-//use codec::{Codec, Encode, Decode, EncodeLike};
+pub use default_weight::WeightInfo;
 use frame_support::{
     codec::{Codec, Decode, Encode, EncodeLike},
     decl_error, decl_event, decl_module, decl_storage, ensure,
@@ -26,9 +27,8 @@ use frame_support::{
     traits::{Get, Time},
 };
 use frame_system::ensure_signed;
-pub use default_weight::WeightInfo;
+mod benchmarking;
 mod default_weight;
-
 /// Type synonym for timestamp data type.
 pub type MomentOf<T> = <<T as Config>::Time as Time>::Moment;
 /// system::AccountId type
@@ -217,69 +217,60 @@ impl<T: Config> Module<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{self as datalog, *};
 
     use base58::FromBase58;
     use frame_support::sp_runtime::{
-        testing::Header, traits::IdentityLookup, DispatchError, Perbill,
+        testing::Header, traits::BlakeTwo256, traits::IdentityLookup, DispatchError,
     };
-    use frame_support::{
-        assert_err, assert_ok, impl_outer_origin, parameter_types,
-        weights::{
-            constants::{BlockExecutionWeight, ExtrinsicBaseWeight},
-            Weight,
-        },
-    };
+    use frame_support::{assert_err, assert_ok, parameter_types};
     use node_primitives::Moment;
     use sp_core::H256;
 
-    impl_outer_origin! {
-        pub enum Origin for Runtime {}
-    }
-
-    #[derive(Clone, PartialEq, Eq, Debug)]
-    pub struct Runtime;
-    type Datalog = Module<Runtime>;
+    type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
     type RuntimeError = Error<Runtime>;
-    type Timestamp = pallet_timestamp::Module<Runtime>;
+    type Block = frame_system::mocking::MockBlock<Runtime>;
     type Item = RingBufferItem<Runtime>;
 
+    frame_support::construct_runtime!(
+        pub enum Runtime where
+            Block = Block,
+            NodeBlock = Block,
+            UncheckedExtrinsic = UncheckedExtrinsic,
+        {
+            System: frame_system::{Module, Call, Config, Storage, Event<T>},
+            Timestamp: pallet_timestamp::{Module, Storage},
+            Datalog: datalog::{Module, Call, Storage, Event<T>},
+        }
+    );
+
     parameter_types! {
-        pub const BlockHashCount: u64 = 250;
-
-        pub const MaximumBlockWeight: Weight = 2_000_000_000;
-        pub const AvailableBlockRatio: Perbill = Perbill::from_percent(75);
-
-        pub MaximumExtrinsicWeight: Weight = 1_000_000_000;
-        pub const MaximumBlockLength: u32 = 1_000_000;
+        pub const BlockHashCount: u64 = 2400;
     }
 
     impl frame_system::Config for Runtime {
         type Origin = Origin;
         type Index = u64;
         type BlockNumber = u64;
-        type Call = ();
+        type Call = Call;
         type Hash = H256;
-        type Hashing = frame_support::sp_runtime::traits::BlakeTwo256;
+        type Hashing = BlakeTwo256;
         type AccountId = u64;
         type Lookup = IdentityLookup<Self::AccountId>;
         type Header = Header;
-        type Event = ();
+        type Event = Event;
         type BlockHashCount = BlockHashCount;
         type Version = ();
-        type PalletInfo = ();
+        type PalletInfo = PalletInfo;
         type AccountData = ();
         type OnNewAccount = ();
         type OnKilledAccount = ();
         type DbWeight = ();
         type BaseCallFilter = ();
         type SystemWeightInfo = ();
-        type BlockExecutionWeight = BlockExecutionWeight;
-        type ExtrinsicBaseWeight = ExtrinsicBaseWeight;
-        type MaximumExtrinsicWeight = MaximumExtrinsicWeight;
-        type MaximumBlockWeight = MaximumBlockWeight;
-        type MaximumBlockLength = MaximumBlockLength;
-        type AvailableBlockRatio = AvailableBlockRatio;
+        type BlockWeights = ();
+        type BlockLength = ();
+        type SS58Prefix = ();
     }
 
     parameter_types! {
@@ -302,7 +293,7 @@ mod tests {
     impl Config for Runtime {
         type Time = Timestamp;
         type Record = Vec<u8>;
-        type Event = ();
+        type Event = Event;
         type WindowSize = WindowSize;
         type MaximumMessageSize = MaximumMessageSize;
         type WeightInfo = ();

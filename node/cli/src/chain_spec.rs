@@ -172,7 +172,6 @@ pub fn testnet_genesis(
                 .iter()
                 .cloned()
                 .map(|k| (k, ENDOWMENT))
-                .chain(initial_authorities.iter().map(|x| (x.0.clone(), STAKE)))
                 .collect(),
         }),
         pallet_babe: Some(BabeConfig {

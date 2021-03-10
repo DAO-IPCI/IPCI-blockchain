@@ -51,7 +51,6 @@ pallet-authority-discovery = { version = "3.0.0", default-features = false }
 pallet-authorship = { version = "3.0.0", default-features = false }
 pallet-babe = { version = "3.0.0", default-features = false }
 pallet-balances = { version = "3.0.0", default-features = false }
-#pallet-finality-tracker = { version = "3.0.0", default-features = false }
 pallet-grandpa = { version = "3.0.0", default-features = false }
 pallet-im-online = { version = "3.0.0", default-features = false }
 pallet-indices = { version = "3.0.0", default-features = false }
@@ -59,7 +58,7 @@ pallet-identity = { version = "3.0.0", default-features = false }
 pallet-membership = { version = "3.0.0", default-features = false }
 pallet-multisig = { version = "3.0.0", default-features = false }
 pallet-offences = { version = "3.0.0", default-features = false }
-pallet-offences-benchmarking = { version = "3.0.0", default-features = false, optional = true }
+#pallet-offences-benchmarking = { version = "3.0.0", default-features = false, optional = true }
 pallet-randomness-collective-flip = { version = "3.0.0", default-features = false }
 pallet-session = { version = "3.0.0", features = ["historical"], default-features = false }
 pallet-session-benchmarking = { version = "3.0.0", default-features = false, optional = true }
@@ -70,6 +69,7 @@ pallet-timestamp = { version = "3.0.0", default-features = false }
 pallet-utility = { version = "3.0.0", default-features = false }
 pallet-transaction-payment = { version = "3.0.0", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { version = "3.0.0", default-features = false }
+pallet-mmr = { version = "3.0.0", default-features = false }
 
 [build-dependencies]
 substrate-wasm-builder = { version = "3.0.0" }
@@ -90,7 +90,6 @@ std = [
 	"sp-block-builder/std",
 	"codec/std",
 	"frame-executive/std",
-	#"pallet-finality-tracker/std",
 	"pallet-grandpa/std",
 	"pallet-im-online/std",
 	"pallet-indices/std",
@@ -123,6 +122,7 @@ std = [
 	"pallet-utility/std",
 	"sp-version/std",
 	"pallet-robonomics-datalog/std",
+	"pallet-mmr/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -139,7 +139,9 @@ runtime-benchmarks = [
 	"pallet-staking/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
-	"pallet-offences-benchmarking",
+	"pallet-mmr/runtime-benchmarks",
+	#"pallet-offences-benchmarking",
+	"pallet-robonomics-datalog/runtime-benchmarks",
 	"pallet-session-benchmarking",
 	"frame-system-benchmarking",
 	"hex-literal",

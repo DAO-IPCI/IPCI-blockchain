@@ -10,8 +10,11 @@ codec = { package = "parity-scale-codec", version = "2.0.0", default-features = 
 frame-system = { version="3.0.0", default-features = false }
 frame-support = { version="3.0.0", default-features = false }
 pallet-timestamp = { version="3.0.0", default-features = false }
+frame-benchmarking = {  version="3.0.0", default-features = false, optional = true }
+sp-std = { version = "3.0.0", default-features = false }
 
 [dev-dependencies]
+serde = { version = "1.0.123" }
 base58 = "0.1.0"
 sp-core = { version="3.0.0" }
 node-primitives = { path = "../../node/primitives" }
@@ -24,3 +27,9 @@ std = [
     "frame-support/std",
     "pallet-timestamp/std",
 ]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-support/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+]
+

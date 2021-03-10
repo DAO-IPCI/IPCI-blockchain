@@ -786,6 +786,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ckb-merkle-mountain-range"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e486fe53bb9f2ca0f58cb60e8679a5354fd6687a839942ef0a75967250289ca6"
+dependencies = [
+ "cfg-if 0.1.10",
+]
+
+[[package]]
 name = "clang-sys"
 version = "0.29.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3730,7 +3739,6 @@ dependencies = [
  "frame-system",
  "futures 0.3.12",
  "hex-literal",
- "jemallocator",
  "log",
  "nix",
  "node-executor",
@@ -3747,6 +3755,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "parity-scale-codec",
+ "parity-util-mem",
  "parking_lot 0.11.1",
  "platforms 0.2.1",
  "rand 0.7.3",
@@ -3760,7 +3769,9 @@ dependencies = [
  "sc-consensus",
  "sc-consensus-babe",
  "sc-consensus-epochs",
+ "sc-consensus-slots",
  "sc-finality-grandpa",
+ "sc-finality-grandpa-warp-sync",
  "sc-keystore",
  "sc-network",
  "sc-offchain",
@@ -3779,6 +3790,7 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-keyring",
+ "sp-keystore",
  "sp-runtime",
  "sp-timestamp",
  "sp-transaction-pool",
@@ -3859,6 +3871,7 @@ dependencies = [
  "node-primitives",
  "node-runtime",
  "pallet-transaction-payment-rpc",
+ "sc-chain-spec",
  "sc-client-api",
  "sc-consensus-babe",
  "sc-consensus-babe-rpc",
@@ -3868,11 +3881,13 @@ dependencies = [
  "sc-keystore",
  "sc-rpc",
  "sc-rpc-api",
+ "sc-sync-state-rpc",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
+ "sp-keystore",
  "sp-runtime",
  "sp-transaction-pool",
  "substrate-frame-rpc-system",
@@ -3900,9 +3915,9 @@ dependencies = [
  "pallet-im-online",
  "pallet-indices",
  "pallet-membership",
+ "pallet-mmr",
  "pallet-multisig",
  "pallet-offences",
- "pallet-offences-benchmarking",
  "pallet-randomness-collective-flip",
  "pallet-robonomics-datalog",
  "pallet-session",
@@ -4254,6 +4269,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-mmr"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd8c2720db135c480bec4e6bf942c847ccd33df199159c1a40d1ed8edb86333c"
+dependencies = [
+ "ckb-merkle-mountain-range",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-mmr-primitives",
+ "parity-scale-codec",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-mmr-primitives"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "466b00a6c48f18488d00b4e8800b62f05ebb464f3aa0b8e2dd6632682fbfceb7"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-multisig"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4287,28 +4337,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-offences-benchmarking"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0287c59dac1faad2f0cf370406e698df16c2d7d25454b5b1cc1cd6a420370aa"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-babe",
- "pallet-balances",
- "pallet-grandpa",
- "pallet-im-online",
- "pallet-offences",
- "pallet-session",
- "pallet-staking",
- "parity-scale-codec",
- "sp-runtime",
- "sp-staking",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-randomness-collective-flip"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4327,12 +4355,15 @@ name = "pallet-robonomics-datalog"
 version = "0.3.1"
 dependencies = [
  "base58",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "node-primitives",
  "pallet-timestamp",
  "parity-scale-codec",
+ "serde",
  "sp-core",
+ "sp-std",
 ]
 
 [[package]]
@@ -4600,6 +4631,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "hashbrown",
  "impl-trait-for-tuples",
+ "jemallocator",
  "parity-util-mem-derive",
  "parking_lot 0.11.1",
  "primitive-types",
@@ -6172,6 +6204,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "sc-finality-grandpa-warp-sync"
+version = "0.8.0"
+dependencies = [
+ "derive_more",
+ "futures 0.3.12",
+ "log",
+ "num-traits",
+ "parity-scale-codec",
+ "parking_lot 0.11.1",
+ "prost",
+ "sc-client-api",
+ "sc-finality-grandpa",
+ "sc-network",
+ "sc-service",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
 name = "sc-informant"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6510,6 +6561,27 @@ dependencies = [
  "parking_lot 0.11.1",
  "sc-client-api",
  "sp-core",
+ "thiserror",
+]
+
+[[package]]
+name = "sc-sync-state-rpc"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3777fc5dc8e90c4f27a3824cd4c08eeab578758ea2267b7563a22a829b44060"
+dependencies = [
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "sc-chain-spec",
+ "sc-client-api",
+ "sc-consensus-babe",
+ "sc-consensus-epochs",
+ "sc-finality-grandpa",
+ "sc-rpc-api",
+ "serde_json",
+ "sp-blockchain",
+ "sp-runtime",
  "thiserror",
 ]
 

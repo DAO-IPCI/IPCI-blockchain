@@ -23,7 +23,6 @@
 //! or a raw SCALE-encoding can be provided.
 
 #![warn(missing_docs)]
-#![allow(clippy::large_enum_variant)]
 
 pub mod cli;
 pub mod command;
