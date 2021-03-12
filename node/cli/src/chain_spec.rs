@@ -24,7 +24,7 @@ use node_runtime::Block;
 use node_runtime::{
     wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, GrandpaConfig,
     ImOnlineConfig, IndicesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
-    SudoConfig, SystemConfig,
+    SudoConfig, SystemConfig
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;

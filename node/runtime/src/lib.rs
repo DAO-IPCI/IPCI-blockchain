@@ -583,6 +583,38 @@ impl pallet_robonomics_datalog::Config for Runtime {
     type MaximumMessageSize = DatalogMaximumMessageSize;
     type WeightInfo = ();
 }
+mod evercity {
+    pub const DEFAULT_DAY_DURATION: u32 = 60; //86400;
+}
+parameter_types! {
+    pub const BurnRequestTtl: u32 = evercity::DEFAULT_DAY_DURATION as u32 * 7 * 1000;
+    pub const MintRequestTtl: u32 = evercity::DEFAULT_DAY_DURATION as u32 * 7 * 1000;
+    pub const MaxMintAmount: pallet_evercity::EverUSDBalance = 60_000_000_000_000_000;
+    // timestep is a bond granularity
+    pub const TimeStep: pallet_evercity::BondPeriod = evercity::DEFAULT_DAY_DURATION;
+}
+
+impl pallet_evercity::Config for Runtime {
+    type Event = Event;
+    type BurnRequestTtl = BurnRequestTtl;
+    type MintRequestTtl = MintRequestTtl;
+    type MaxMintAmount = MaxMintAmount;
+    type TimeStep = TimeStep;
+    type WeightInfo = ();
+    type OnAddAccount = ();
+    type OnAddBond = ();
+}
+
+parameter_types! {
+    pub const MaximumTransferValue: Balance = 10 * MITO;
+}
+
+impl pallet_evercity_transfer::Config for Runtime {
+    type Event = Event;
+    type MaximumTransferValue = MaximumTransferValue;
+    type Currency = Balances;
+    type WeightInfo = ();
+}
 
 construct_runtime!(
     pub enum Runtime where
@@ -616,11 +648,15 @@ construct_runtime!(
         Mmr: pallet_mmr::{Module, Storage},
 
         Datalog: pallet_robonomics_datalog::{Module, Call, Storage, Event<T>},
+        // Evercity bonds
+        Evercity: pallet_evercity::{Module, Call, Storage, Event<T>},
+        EvercityTransfer: pallet_evercity_transfer::{Module, Call, Storage, Event<T>},
     }
 );
 
 /// The address format for describing accounts.
-pub type Address = sp_runtime::MultiAddress<AccountId, AccountIndex>;
+pub type Address = <Indices as StaticLookup>::Source;
+//pub type Address = sp_runtime::MultiAddress<AccountId, AccountIndex>;
 /// Block header type as expected by this runtime.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
@@ -630,10 +666,6 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 /// The SignedExtension to the basic transaction logic.
-///
-/// When you change this, you **MUST** modify [`sign`] in `bin/node/testing/src/keyring.rs`!
-///
-/// [`sign`]: <../../testing/src/keyring.rs.html>
 pub type SignedExtra = (
     frame_system::CheckSpecVersion<Runtime>,
     frame_system::CheckTxVersion<Runtime>,
