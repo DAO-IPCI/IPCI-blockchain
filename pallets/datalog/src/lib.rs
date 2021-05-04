@@ -217,6 +217,7 @@ impl<T: Config> Module<T> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::from_over_into)]
     use crate::{self as datalog, *};
 
     use base58::FromBase58;

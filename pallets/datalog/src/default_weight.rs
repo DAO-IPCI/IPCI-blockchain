@@ -16,6 +16,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#![allow(clippy::unnecessary_cast)]
 use frame_support::weights::{constants::RocksDbWeight as DbWeight, Weight};
 
 pub trait WeightInfo {
@@ -25,14 +26,14 @@ pub trait WeightInfo {
 
 impl WeightInfo for () {
     fn record() -> Weight {
-        (1_000_000 as Weight)
-            .saturating_add(DbWeight::get().reads(2 as Weight))
-            .saturating_add(DbWeight::get().writes(3 as Weight))
+        (1_000_000_u64 as Weight)
+            .saturating_add(DbWeight::get().reads(2_u64 as Weight))
+            .saturating_add(DbWeight::get().writes(3_u64 as Weight))
     }
 
     fn erase(win: u64) -> Weight {
-        (10_000_000 as Weight)
-            .saturating_add(DbWeight::get().reads(1 as Weight))
-            .saturating_add(DbWeight::get().writes(1 + win as Weight))
+        (10_000_000_u64 as Weight)
+            .saturating_add(DbWeight::get().reads(1_u64 as Weight))
+            .saturating_add(DbWeight::get().writes((1_u64 + win) as Weight))
     }
 }

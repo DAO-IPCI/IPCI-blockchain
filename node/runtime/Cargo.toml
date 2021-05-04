@@ -71,7 +71,7 @@ pallet-transaction-payment-rpc-runtime-api = { version = "3.0.0", default-featur
 pallet-mmr = { version = "3.0.0", default-features = false }
 
 # external dependencies
-pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "substrate_3", default-features = false }
+pallet-evercity = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "master", default-features = false }
 pallet-evercity-transfer = { git = "https://github.com/EvercityEcosystem/evercity-substrate", branch = "substrate_3", default-features = false }
 [build-dependencies]
 substrate-wasm-builder = { version = "3.0.0" }

@@ -24,7 +24,7 @@ use node_runtime::Block;
 use node_runtime::{
     wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, GrandpaConfig,
     ImOnlineConfig, IndicesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
-    SudoConfig, SystemConfig
+    SudoConfig, SystemConfig,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
@@ -212,18 +212,37 @@ pub fn testnet_genesis(
 
 fn development_config_genesis() -> GenesisConfig {
     testnet_genesis(
-        vec![authority_keys_from_seed("Alice")],
+        vec![
+            authority_keys_from_seed("Alice"),
+            authority_keys_from_seed("Bob"),
+            authority_keys_from_seed("Charlie"),
+            authority_keys_from_seed("Dave"),
+        ],
         get_account_id_from_seed::<sr25519::Public>("Alice"),
         None,
         true,
     )
 }
 
-/// Development config (single validator Alice)
+/// Development config
 pub fn development_config() -> ChainSpec {
     ChainSpec::from_genesis(
         "Development",
         "dev",
+        ChainType::Development,
+        development_config_genesis,
+        vec![],
+        None,
+        None,
+        None,
+        Default::default(),
+    )
+}
+/// Local testnet config
+pub fn local_config() -> ChainSpec {
+    ChainSpec::from_genesis(
+        "Local_testnet",
+        "local",
         ChainType::Development,
         development_config_genesis,
         vec![],
